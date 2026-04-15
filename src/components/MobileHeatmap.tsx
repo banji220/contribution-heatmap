@@ -223,7 +223,6 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
         </div>
         ))}
     </div>
-    </div>
 
     {/* Legend — outside scroll */}
     <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-2">
