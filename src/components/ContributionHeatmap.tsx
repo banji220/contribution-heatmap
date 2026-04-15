@@ -4,8 +4,7 @@ import MobileHeatmap from "./MobileHeatmap";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const CELL = 10;
-const GAP = 2;
+const GAP = 3;
 const DAY_LABEL_WIDTH = 28;
 
 interface DayStats {
@@ -122,27 +121,19 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   const didLongPress = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  // Auto-scroll to end (today) on mobile
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-    }
-  }, [days]);
-
-  const handleMouseEnter = useCallback((e: React.MouseEvent, day: DayEntry) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    if (rect) {
-      setTooltip({
-        day,
-        x: cellRect.left - rect.left + cellRect.width / 2,
-        y: cellRect.top - rect.top - 8,
-      });
-    }
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
-
-  const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
   const { currentStreak, longestStreak, streakSet } = useMemo(() => {
     let current = 0;
@@ -206,6 +197,19 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
   const metricInfo = METRICS.find((m) => m.key === activeMetric)!;
 
+  const cellSize = useMemo(() => {
+    if (containerWidth === 0 || isMobile) return 14;
+    const padding = 32;
+    const available = containerWidth - padding - DAY_LABEL_WIDTH;
+    const numWeeks = weeks.length || 53;
+    const maxCell = Math.floor((available + GAP) / numWeeks - GAP);
+    return Math.max(10, Math.min(maxCell, 18));
+  }, [containerWidth, weeks.length, isMobile]);
+
+  const cellGap = GAP;
+  const colWidth = cellSize + cellGap;
+  const gridWidth = weeks.length * colWidth - cellGap;
+
   const monthLabels = useMemo(() => {
     const labels: { label: string; col: number }[] = [];
     let lastMonth = -1;
@@ -219,10 +223,19 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
     return labels;
   }, [weeks]);
 
-  const cellSize = CELL;
-  const cellGap = GAP;
-  const colWidth = cellSize + cellGap;
-  const gridWidth = weeks.length * colWidth - cellGap;
+  const handleMouseEnter = useCallback((e: React.MouseEvent, day: DayEntry) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if (rect) {
+      setTooltip({
+        day,
+        x: cellRect.left - rect.left + cellRect.width / 2,
+        y: cellRect.top - rect.top - 8,
+      });
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
 
   return (
