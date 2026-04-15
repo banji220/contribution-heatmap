@@ -110,6 +110,8 @@ export default function ContributionHeatmap() {
   const [selectedDay, setSelectedDay] = useState<DayEntry | null>(null);
   const [undoInfo, setUndoInfo] = useState<{ date: string; stats: DayStats } | null>(null);
   const [resetDate, setResetDate] = useState<string | null>(null);
+  const [longPressDay, setLongPressDay] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
