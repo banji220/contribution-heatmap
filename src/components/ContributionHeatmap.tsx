@@ -307,48 +307,52 @@ export default function ContributionHeatmap() {
                       Array.from({ length: week[0].dow }).map((_, pi) => (
                         <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
                       ))}
-                    {week.map((day, di) => (
-                      <div
-                        key={di}
-                        className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
-                        data-level={getLevel(day.count, activeMetric)}
-                        style={{ width: CELL, height: CELL, cursor: "pointer" }}
-                        onMouseEnter={(e) => handleMouseEnter(e, day)}
-                        onMouseLeave={handleMouseLeave}
-                        onClick={() => {
-                          if (longPressTimer.current === null) return;
-                          setSelectedDay(selectedDay?.date === day.date ? null : day);
-                        }}
-                        onTouchStart={(e) => {
-                          longPressTimer.current = setTimeout(() => {
-                            longPressTimer.current = null;
-                            const rect = containerRef.current?.getBoundingClientRect();
-                            const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                            if (rect) {
-                              setLongPressDay({
-                                day,
-                                x: cellRect.left - rect.left + cellRect.width / 2,
-                                y: cellRect.top - rect.top + cellRect.height + 4,
-                              });
+                    {week.map((day, di) => {
+                      const didLongPress = useRef(false);
+                      return (
+                        <div
+                          key={di}
+                          className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
+                          data-level={getLevel(day.count, activeMetric)}
+                          style={{ width: CELL, height: CELL, cursor: "pointer" }}
+                          onMouseEnter={(e) => handleMouseEnter(e, day)}
+                          onMouseLeave={handleMouseLeave}
+                          onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
+                          onTouchStart={(e) => {
+                            didLongPress.current = false;
+                            const target = e.currentTarget;
+                            longPressTimer.current = setTimeout(() => {
+                              didLongPress.current = true;
+                              longPressTimer.current = null;
+                              const rect = containerRef.current?.getBoundingClientRect();
+                              const cellRect = target.getBoundingClientRect();
+                              if (rect) {
+                                setLongPressDay({
+                                  day,
+                                  x: cellRect.left - rect.left + cellRect.width / 2,
+                                  y: cellRect.top - rect.top + cellRect.height + 4,
+                                });
+                              }
+                            }, 400);
+                          }}
+                          onTouchEnd={(e) => {
+                            if (longPressTimer.current) {
+                              clearTimeout(longPressTimer.current);
+                              longPressTimer.current = null;
                             }
-                          }, 400);
-                        }}
-                        onTouchEnd={() => {
-                          if (longPressTimer.current) {
-                            clearTimeout(longPressTimer.current);
-                            longPressTimer.current = setTimeout(() => {}, 0);
-                            clearTimeout(longPressTimer.current);
-                            longPressTimer.current = {} as ReturnType<typeof setTimeout>;
-                          }
-                        }}
-                        onTouchMove={() => {
-                          if (longPressTimer.current) {
-                            clearTimeout(longPressTimer.current);
-                            longPressTimer.current = {} as ReturnType<typeof setTimeout>;
-                          }
-                        }}
-                      />
-                    ))}
+                            if (didLongPress.current) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onTouchMove={() => {
+                            if (longPressTimer.current) {
+                              clearTimeout(longPressTimer.current);
+                              longPressTimer.current = null;
+                            }
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 ))}
               </div>
