@@ -263,7 +263,9 @@ export default function ContributionHeatmap() {
         </div>
 
         {isMobile ? (
-          <div className="border-2 border-foreground bg-card px-3 py-3">
+          <div className="border-2 border-foreground bg-card px-3 py-3 relative">
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-l from-card to-transparent" />
             <MobileHeatmap
               data={sampleData}
               metric={activeMetric}
@@ -277,7 +279,9 @@ export default function ContributionHeatmap() {
           </div>
         ) : (
           <div ref={containerRef} className="border-2 border-foreground bg-card relative">
-            <div ref={scrollRef} className="overflow-x-auto overscroll-x-contain scroll-smooth px-4 py-3">
+            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-l from-card to-transparent" />
+            <div ref={scrollRef} className="overflow-x-auto no-scrollbar overscroll-x-contain scroll-smooth px-4 py-3">
               {tooltip && (
                 <div
                   className="heatmap-tooltip"
