@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +54,7 @@ function getNote(stats: DayStats): string {
 
 export default function DayDetail({ date, stats, open, onClose, onUpdate, onReset }: DayDetailProps) {
   const [editing, setEditing] = useState(false);
+  const [confirmingReset, setConfirmingReset] = useState(false);
   const [draft, setDraft] = useState<DayStats>(stats);
 
   const maxVal = useMemo(() => Math.max(stats.doors, 1), [stats.doors]);
@@ -72,10 +73,11 @@ export default function DayDetail({ date, stats, open, onClose, onUpdate, onRese
     setEditing(false);
   };
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     onReset(date);
+    setConfirmingReset(false);
     onClose();
-  };
+  }, [date, onReset, onClose]);
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setEditing(false); onClose(); } }}>
