@@ -160,7 +160,7 @@ export default function ContributionHeatmap() {
                       className="heatmap-cell"
                       data-level={getLevel(day.count)}
                       style={{ width: CELL, height: CELL }}
-                      title={`${day.count} contributions on ${day.date}`}
+                      title={`${day.count} doors knocked on ${day.date}`}
                     />
                   ))}
                 </div>
