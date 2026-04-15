@@ -101,9 +101,10 @@ function formatDate(dateStr: string): string {
 }
 
 export default function ContributionHeatmap() {
+  const [mounted, setMounted] = useState(false);
   const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
-  useEffect(() => { setSampleData(generateSampleData()); }, []);
+  useEffect(() => { setSampleData(generateSampleData()); setMounted(true); }, []);
   const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
 
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
