@@ -277,7 +277,7 @@ export default function ContributionHeatmap() {
           </div>
         ) : (
           <div ref={containerRef} className="border-2 border-foreground bg-card relative">
-            <div ref={scrollRef} className="overflow-x-auto overscroll-x-contain px-4 py-3">
+            <div ref={scrollRef} className="overflow-x-auto overscroll-x-contain scroll-smooth px-4 py-3">
               {tooltip && (
                 <div
                   className="heatmap-tooltip"
