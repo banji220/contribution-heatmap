@@ -69,13 +69,14 @@ function Index() {
     return { currentStreak: current, longestStreak: longest };
   }, [sampleData]);
 
-  const initialDoors = useMemo(() => {
-    const hour = new Date().getHours();
-    return Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40);
-  }, []);
-
-  const [doorsToday, setDoorsToday] = useState(initialDoors);
+  const [doorsToday, setDoorsToday] = useState(0);
   const target = 30;
+
+  // Set initial doors client-side to avoid hydration mismatch
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setDoorsToday(Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40));
+  }, []);
 
   const handleLog = useCallback((count: number) => {
     setDoorsToday((prev) => prev + count);
