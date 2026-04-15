@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 interface StreakPanelProps {
   currentStreak: number;
   longestStreak: number;
@@ -11,7 +13,7 @@ function getStreakStatus(current: number): { label: string; emoji: string; tone:
   return { label: "Cold", emoji: "❄️", tone: "cold" };
 }
 
-export default function StreakPanel({ currentStreak, longestStreak }: StreakPanelProps) {
+export default memo(function StreakPanel({ currentStreak, longestStreak }: StreakPanelProps) {
   const status = getStreakStatus(currentStreak);
   const pct = longestStreak > 0 ? Math.min(Math.round((currentStreak / longestStreak) * 100), 100) : 0;
 
@@ -74,4 +76,4 @@ export default function StreakPanel({ currentStreak, longestStreak }: StreakPane
       </div>
     </section>
   );
-}
+});

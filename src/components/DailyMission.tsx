@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, memo } from "react";
 
 interface DailyMissionProps {
   doorsToday: number;
@@ -22,7 +22,7 @@ function getSuggestion(doorsToday: number, target: number, hour: number): string
   return "Good start. Stay consistent and stack the numbers.";
 }
 
-export default function DailyMission({ doorsToday, target }: DailyMissionProps) {
+export default memo(function DailyMission({ doorsToday, target }: DailyMissionProps) {
   const [hour, setHour] = useState(12); // safe default for SSR
   useEffect(() => { setHour(new Date().getHours()); }, []);
 
@@ -98,4 +98,4 @@ export default function DailyMission({ doorsToday, target }: DailyMissionProps) 
       </div>
     </section>
   );
-}
+});

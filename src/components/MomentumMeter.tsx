@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 
 interface MomentumMeterProps {
   data: Record<string, { doors: number; conversations: number; leads: number; appointments: number; wins: number }>;
@@ -22,7 +22,7 @@ function getMomentumLabel(score: number): { label: string; emoji: string; tone: 
   return { label: "Stalled", emoji: "💤", tone: "dead" };
 }
 
-export default function MomentumMeter({ data }: MomentumMeterProps) {
+export default memo(function MomentumMeter({ data }: MomentumMeterProps) {
   const { score, status, recentDoors, trend } = useMemo(() => {
     const last7 = getRecentDays(7);
     const prev7 = getRecentDays(14).slice(0, 7);
@@ -135,4 +135,4 @@ export default function MomentumMeter({ data }: MomentumMeterProps) {
       </div>
     </section>
   );
-}
+});
