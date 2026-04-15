@@ -119,10 +119,12 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
   const gridWidth = 7 * CELL_SIZE + 6 * GAP;
   const monthWidth = gridWidth + 24; // grid + padding
 
-  // Auto-scroll to the end (most recent month)
+  // Auto-scroll to the end (most recent month) only on mount
+  const hasScrolled = useRef(false);
   React.useEffect(() => {
-    if (scrollRef.current) {
+    if (!hasScrolled.current && scrollRef.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+      hasScrolled.current = true;
     }
   }, [months]);
 
