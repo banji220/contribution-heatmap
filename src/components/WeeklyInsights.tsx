@@ -57,8 +57,12 @@ export default function WeeklyInsights({ data }: WeeklyInsightsProps) {
 
     const totalWins = entries.reduce((s, e) => s + e.stats.wins, 0);
     const totalConvos = entries.reduce((s, e) => s + e.stats.conversations, 0);
+    const totalLeads = entries.reduce((s, e) => s + e.stats.leads, 0);
 
-    return { total, avg, best, worst, activeDays: activeDays.length, totalDays: weekDays.length, totalWins, totalConvos };
+    const convToLeadPct = totalConvos > 0 ? Math.round((totalLeads / totalConvos) * 100) : 0;
+    const leadToWinPct = totalLeads > 0 ? Math.round((totalWins / totalLeads) * 100) : 0;
+
+    return { total, avg, best, worst, activeDays: activeDays.length, totalDays: weekDays.length, totalWins, totalConvos, totalLeads, convToLeadPct, leadToWinPct };
   }, [data]);
 
   if (insights.totalDays === 0) return null;
