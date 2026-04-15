@@ -141,11 +141,11 @@
   --sidebar-border: oklch(0.95 0.01 80 / 20%);
   --sidebar-ring: oklch(0.7 0.2 50);
   --heatmap-0: oklch(0.19 0 0);
-  --heatmap-1: oklch(0.26 0.04 60);
-  --heatmap-2: oklch(0.4 0.12 50);
-  --heatmap-3: oklch(0.55 0.19 42);
-  --heatmap-4: oklch(0.65 0.23 33);
-  --heatmap-5: oklch(0.6 0.28 25);
+  --heatmap-1: oklch(0.28 0.05 50);
+  --heatmap-2: oklch(0.38 0.12 45);
+  --heatmap-3: oklch(0.5 0.19 38);
+  --heatmap-4: oklch(0.6 0.23 30);
+  --heatmap-5: oklch(0.7 0.28 25);
 }
 
 /* Heatmap cells */
