@@ -262,68 +262,80 @@ export default function ContributionHeatmap() {
           ))}
         </div>
 
-        <div ref={containerRef} className="border-2 border-foreground bg-card relative">
-          {/* Scrollable heatmap container */}
-          <div ref={scrollRef} className="overflow-x-auto overscroll-x-contain px-3 sm:px-4 py-3 -webkit-overflow-scrolling-touch">
-            {tooltip && (
-              <div
-                className="heatmap-tooltip"
-                style={{ left: tooltip.x, top: tooltip.y }}
-              >
-                <div className="font-mono text-[11px] font-bold mb-1.5 opacity-80">
-                  {formatDate(tooltip.day.date)}
-                </div>
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
-                  <span className="opacity-60">Doors</span>
-                  <span className="text-right font-bold tabular-nums">{tooltip.day.stats.doors}</span>
-                  <span className="opacity-60">Convos</span>
-                  <span className="text-right font-bold tabular-nums">{tooltip.day.stats.conversations}</span>
-                  <span className="opacity-60">Leads</span>
-                  <span className="text-right font-bold tabular-nums">{tooltip.day.stats.leads}</span>
-                  <span className="opacity-60">Appts</span>
-                  <span className="text-right font-bold tabular-nums">{tooltip.day.stats.appointments}</span>
-                  <span className="opacity-60">Wins</span>
-                  <span className="text-right font-bold tabular-nums">{tooltip.day.stats.wins}</span>
-                </div>
-              </div>
-            )}
-
-            <div className="relative" style={{ height: 15, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
-              {monthLabels.map((m, i) => {
-                const tooClose = i > 0 && (m.col - monthLabels[i - 1].col) < 4;
-                if (tooClose) return null;
-                return (
-                  <span
-                    key={i}
-                    className="absolute text-[10px] sm:text-[11px] leading-none text-muted-foreground"
-                    style={{ left: m.col * colWidth }}
-                  >
-                    {m.label}
-                  </span>
-                );
-              })}
-            </div>
-
-            <div className="flex">
-              <div className="flex flex-col shrink-0" style={{ width: DAY_LABEL_WIDTH, gap: GAP }}>
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label, i) => (
-                  <div key={i} style={{ height: CELL }} className="flex items-center">
-                    <span className="text-[10px] sm:text-[11px] leading-none text-muted-foreground">
-                      {i === 1 || i === 3 || i === 5 ? label : ""}
-                    </span>
+        {isMobile ? (
+          <div className="border-2 border-foreground bg-card px-3 py-3">
+            <MobileHeatmap
+              data={sampleData}
+              metric={activeMetric}
+              selectedDate={selectedDay?.date ?? null}
+              resetDate={resetDate}
+              onDayTap={(day) => setSelectedDay(selectedDay?.date === day.date ? null : day)}
+              onDayLongPress={(day) => {
+                setSelectedDay(day);
+              }}
+            />
+          </div>
+        ) : (
+          <div ref={containerRef} className="border-2 border-foreground bg-card relative">
+            <div ref={scrollRef} className="overflow-x-auto overscroll-x-contain px-4 py-3">
+              {tooltip && (
+                <div
+                  className="heatmap-tooltip"
+                  style={{ left: tooltip.x, top: tooltip.y }}
+                >
+                  <div className="font-mono text-[11px] font-bold mb-1.5 opacity-80">
+                    {formatDate(tooltip.day.date)}
                   </div>
-                ))}
+                  <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
+                    <span className="opacity-60">Doors</span>
+                    <span className="text-right font-bold tabular-nums">{tooltip.day.stats.doors}</span>
+                    <span className="opacity-60">Convos</span>
+                    <span className="text-right font-bold tabular-nums">{tooltip.day.stats.conversations}</span>
+                    <span className="opacity-60">Leads</span>
+                    <span className="text-right font-bold tabular-nums">{tooltip.day.stats.leads}</span>
+                    <span className="opacity-60">Appts</span>
+                    <span className="text-right font-bold tabular-nums">{tooltip.day.stats.appointments}</span>
+                    <span className="opacity-60">Wins</span>
+                    <span className="text-right font-bold tabular-nums">{tooltip.day.stats.wins}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="relative" style={{ height: 15, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
+                {monthLabels.map((m, i) => {
+                  const tooClose = i > 0 && (m.col - monthLabels[i - 1].col) < 4;
+                  if (tooClose) return null;
+                  return (
+                    <span
+                      key={i}
+                      className="absolute text-[11px] leading-none text-muted-foreground"
+                      style={{ left: m.col * colWidth }}
+                    >
+                      {m.label}
+                    </span>
+                  );
+                })}
               </div>
 
-              <div className="flex" style={{ gap: GAP }}>
-                {weeks.map((week, wi) => (
-                  <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
-                    {wi === 0 &&
-                      Array.from({ length: week[0].dow }).map((_, pi) => (
-                        <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
-                      ))}
-                    {week.map((day, di) => {
-                      return (
+              <div className="flex">
+                <div className="flex flex-col shrink-0" style={{ width: DAY_LABEL_WIDTH, gap: GAP }}>
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label, i) => (
+                    <div key={i} style={{ height: CELL }} className="flex items-center">
+                      <span className="text-[11px] leading-none text-muted-foreground">
+                        {i === 1 || i === 3 || i === 5 ? label : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex" style={{ gap: GAP }}>
+                  {weeks.map((week, wi) => (
+                    <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
+                      {wi === 0 &&
+                        Array.from({ length: week[0].dow }).map((_, pi) => (
+                          <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
+                        ))}
+                      {week.map((day, di) => (
                         <div
                           key={di}
                           className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
@@ -332,92 +344,60 @@ export default function ContributionHeatmap() {
                           onMouseEnter={(e) => handleMouseEnter(e, day)}
                           onMouseLeave={handleMouseLeave}
                           onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
-                          onTouchStart={(e) => {
-                            didLongPress.current = false;
-                            const target = e.currentTarget;
-                            longPressTimer.current = setTimeout(() => {
-                              didLongPress.current = true;
-                              longPressTimer.current = null;
-                              const rect = containerRef.current?.getBoundingClientRect();
-                              const cellRect = target.getBoundingClientRect();
-                              if (rect) {
-                                setLongPressDay({
-                                  day,
-                                  x: cellRect.left - rect.left + cellRect.width / 2,
-                                  y: cellRect.top - rect.top + cellRect.height + 4,
-                                });
-                              }
-                            }, 400);
-                          }}
-                          onTouchEnd={(e) => {
-                            if (longPressTimer.current) {
-                              clearTimeout(longPressTimer.current);
-                              longPressTimer.current = null;
-                            }
-                            if (didLongPress.current) {
-                              e.preventDefault();
-                            }
-                          }}
-                          onTouchMove={() => {
-                            if (longPressTimer.current) {
-                              clearTimeout(longPressTimer.current);
-                              longPressTimer.current = null;
-                            }
-                          }}
                         />
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-3 flex items-center justify-end gap-1.5 text-[10px] sm:text-[11px] font-mono text-muted-foreground">
-              <span className="mr-1 font-bold">Less</span>
-              {[0, 1, 2, 3, 4, 5].map((level) => (
-                <div key={level} className="heatmap-cell heatmap-legend" data-level={level} style={{ width: CELL, height: CELL }} />
-              ))}
-              <span className="ml-1 font-bold">More</span>
-            </div>
-
-            {longPressDay && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setLongPressDay(null)} onTouchStart={() => setLongPressDay(null)} />
-                <div
-                  className="absolute z-50 bg-card border-2 border-foreground shadow-lg flex flex-col min-w-[120px] animate-in fade-in zoom-in-95 duration-150"
-                  style={{ left: Math.max(8, longPressDay.x - 60), top: longPressDay.y }}
-                >
-                  <button
-                    className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left hover:bg-muted transition-colors"
-                    onClick={() => {
-                      const day = longPressDay.day;
-                      setLongPressDay(null);
-                      setSelectedDay(day);
-                    }}
-                  >
-                    ✏️ Edit
-                  </button>
-                  <div className="border-t border-foreground/10" />
-                  <button
-                    className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left text-destructive hover:bg-destructive/10 transition-colors"
-                    onClick={() => {
-                      const date = longPressDay.day.date;
-                      const prev = sampleData[date];
-                      if (prev) setUndoInfo({ date, stats: { ...prev } });
-                      const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-                      setSampleData((p) => ({ ...p, [date]: empty }));
-                      setResetDate(date);
-                      setTimeout(() => setResetDate(null), 600);
-                      setLongPressDay(null);
-                    }}
-                  >
-                    🗑 Reset
-                  </button>
+                      ))}
+                    </div>
+                  ))}
                 </div>
-              </>
-            )}
+              </div>
+
+              <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] font-mono text-muted-foreground">
+                <span className="mr-1 font-bold">Less</span>
+                {[0, 1, 2, 3, 4, 5].map((level) => (
+                  <div key={level} className="heatmap-cell heatmap-legend" data-level={level} style={{ width: CELL, height: CELL }} />
+                ))}
+                <span className="ml-1 font-bold">More</span>
+              </div>
+
+              {longPressDay && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setLongPressDay(null)} onTouchStart={() => setLongPressDay(null)} />
+                  <div
+                    className="absolute z-50 bg-card border-2 border-foreground shadow-lg flex flex-col min-w-[120px] animate-in fade-in zoom-in-95 duration-150"
+                    style={{ left: Math.max(8, longPressDay.x - 60), top: longPressDay.y }}
+                  >
+                    <button
+                      className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left hover:bg-muted transition-colors"
+                      onClick={() => {
+                        const day = longPressDay.day;
+                        setLongPressDay(null);
+                        setSelectedDay(day);
+                      }}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <div className="border-t border-foreground/10" />
+                    <button
+                      className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left text-destructive hover:bg-destructive/10 transition-colors"
+                      onClick={() => {
+                        const date = longPressDay.day.date;
+                        const prev = sampleData[date];
+                        if (prev) setUndoInfo({ date, stats: { ...prev } });
+                        const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
+                        setSampleData((p) => ({ ...p, [date]: empty }));
+                        setResetDate(date);
+                        setTimeout(() => setResetDate(null), 600);
+                        setLongPressDay(null);
+                      }}
+                    >
+                      🗑 Reset
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {selectedDay && (
           <DayDetail
