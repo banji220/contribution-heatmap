@@ -229,8 +229,10 @@ export default function ContributionHeatmap() {
     return labels;
   }, [weeks]);
 
-  const colWidth = CELL + GAP;
-  const gridWidth = weeks.length * colWidth - GAP;
+  const cellSize = !isMobile && range === "90d" ? 22 : CELL;
+  const cellGap = !isMobile && range === "90d" ? 3 : GAP;
+  const colWidth = cellSize + cellGap;
+  const gridWidth = weeks.length * colWidth - cellGap;
 
   if (!mounted) {
     return (
