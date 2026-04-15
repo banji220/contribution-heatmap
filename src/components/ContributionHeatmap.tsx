@@ -292,7 +292,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
           </>
         ) : (
           <div ref={containerRef} className="border-2 border-foreground bg-card relative">
-            <div ref={scrollRef} className="overflow-x-auto no-scrollbar scroll-gpu overscroll-x-contain scroll-smooth snap-x snap-proximity px-4 pt-4 pb-3">
+            <div ref={scrollRef} className="overflow-x-auto no-scrollbar scroll-gpu overscroll-x-contain scroll-smooth snap-x snap-proximity px-5 pt-5 pb-4">
               {/* Header inside the box */}
               <div className="mb-3 flex items-baseline gap-3">
                 <div className="flex items-baseline gap-2 flex-wrap">
