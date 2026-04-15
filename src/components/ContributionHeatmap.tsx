@@ -203,7 +203,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
     const available = containerWidth - padding - DAY_LABEL_WIDTH;
     const numWeeks = weeks.length || 53;
     const maxCell = Math.floor((available + GAP) / numWeeks - GAP);
-    return Math.max(10, Math.min(maxCell, 18));
+    return Math.max(11, Math.min(maxCell, 24));
   }, [containerWidth, weeks.length, isMobile]);
 
   const cellGap = GAP;
