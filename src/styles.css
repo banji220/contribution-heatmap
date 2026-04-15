@@ -99,12 +99,12 @@
   --sidebar-accent-foreground: oklch(0.2 0.03 50);
   --sidebar-border: oklch(0.15 0.02 50);
   --sidebar-ring: oklch(0.65 0.22 45);
-  --heatmap-0: oklch(0.95 0.01 80);
-  --heatmap-1: oklch(0.88 0.08 70);
-  --heatmap-2: oklch(0.78 0.14 60);
-  --heatmap-3: oklch(0.68 0.19 50);
-  --heatmap-4: oklch(0.58 0.22 42);
-  --heatmap-5: oklch(0.50 0.24 38);
+  --heatmap-0: oklch(0.97 0.005 90);
+  --heatmap-1: oklch(0.92 0.08 95);
+  --heatmap-2: oklch(0.78 0.16 65);
+  --heatmap-3: oklch(0.65 0.21 50);
+  --heatmap-4: oklch(0.55 0.22 35);
+  --heatmap-5: oklch(0.48 0.24 25);
 }
 
 .dark {
@@ -140,12 +140,12 @@
   --sidebar-accent-foreground: oklch(0.95 0.01 80);
   --sidebar-border: oklch(0.95 0.01 80 / 20%);
   --sidebar-ring: oklch(0.7 0.2 50);
-  --heatmap-0: oklch(0.2 0.01 50);
-  --heatmap-1: oklch(0.35 0.08 50);
-  --heatmap-2: oklch(0.48 0.14 48);
-  --heatmap-3: oklch(0.6 0.19 45);
-  --heatmap-4: oklch(0.72 0.22 42);
-  --heatmap-5: oklch(0.82 0.24 40);
+  --heatmap-0: oklch(0.18 0.005 50);
+  --heatmap-1: oklch(0.32 0.06 90);
+  --heatmap-2: oklch(0.48 0.14 60);
+  --heatmap-3: oklch(0.58 0.2 45);
+  --heatmap-4: oklch(0.65 0.22 32);
+  --heatmap-5: oklch(0.55 0.24 25);
 }
 
 /* Heatmap cells */
