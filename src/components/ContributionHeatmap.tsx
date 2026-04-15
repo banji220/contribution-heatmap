@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback, memo } from "react";
 import DayDetail from "./DayDetail";
 import MobileHeatmap from "./MobileHeatmap";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,7 +32,18 @@ const METRIC_THRESHOLDS: Record<MetricKey, [number, number, number, number]> = {
   wins: [1, 2, 4, 6],
 };
 
-type DayEntry = { date: string; dow: number; count: number; stats: DayStats };
+type DayEntry = { date: string; dow: number; count: number; stats: DayStats; recency: string };
+
+const TODAY_MS = new Date().setHours(0, 0, 0, 0);
+
+function computeRecency(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-");
+  const diffDays = Math.floor((TODAY_MS - new Date(Number(y), Number(m) - 1, Number(d)).getTime()) / 86400000);
+  if (diffDays <= 14) return "3";
+  if (diffDays <= 45) return "2";
+  if (diffDays <= 90) return "1";
+  return "0";
+}
 
 function buildCalendar(data: Record<string, DayStats>, metric: MetricKey): DayEntry[] {
   const today = new Date();
@@ -50,7 +61,7 @@ function buildCalendar(data: Record<string, DayStats>, metric: MetricKey): DayEn
     if (!seen.has(key)) {
       seen.add(key);
       const stats = data[key] ?? empty;
-      days.push({ date: key, dow: d.getDay(), count: stats[metric], stats });
+      days.push({ date: key, dow: d.getDay(), count: stats[metric], stats, recency: computeRecency(key) });
     }
     d.setDate(d.getDate() + 1);
   }
@@ -68,16 +79,6 @@ function getLevel(count: number, metric: MetricKey): number {
   return 1;
 }
 
-function getRecency(dateStr: string): string {
-  const today = new Date();
-  const [y, m, d] = dateStr.split("-");
-  const date = new Date(Number(y), Number(m) - 1, Number(d));
-  const diffDays = Math.floor((today.getTime() - date.getTime()) / 86400000);
-  if (diffDays <= 14) return "3";
-  if (diffDays <= 45) return "2";
-  if (diffDays <= 90) return "1";
-  return "0";
-}
 
 function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-");
@@ -92,13 +93,13 @@ interface ContributionHeatmapProps {
 export default function ContributionHeatmap({ data: externalData }: ContributionHeatmapProps) {
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
-  const [sampleData, setSampleData] = useState<Record<string, DayStats>>(externalData);
+  const [localOverrides, setLocalOverrides] = useState<Record<string, DayStats>>({});
+  const mergedData = useMemo(() => ({ ...externalData, ...localOverrides }), [externalData, localOverrides]);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
   const [range, setRange] = useState<"90d" | "year">("year");
   const [userOverride, setUserOverride] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { setSampleData(externalData); }, [externalData]);
 
   // Auto-switch based on screen size, but respect manual override
   useEffect(() => {
@@ -119,19 +120,23 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   // Reset override when screen size changes significantly
   useEffect(() => { setUserOverride(false); }, [isMobile]);
 
-  const handleRangeChange = (newRange: "90d" | "year") => {
-    if (newRange === range) return;
-    setUserOverride(true);
-    setTransitioning(true);
-    setTimeout(() => {
-      setRange(newRange);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setTransitioning(false));
-      });
-    }, 150);
-  };
+  const handleRangeChange = useCallback((newRange: "90d" | "year") => {
+    setRange((prev) => {
+      if (prev === newRange) return prev;
+      setUserOverride(true);
+      setTransitioning(true);
+      setTimeout(() => {
+        setRange(newRange);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setTransitioning(false));
+        });
+      }, 150);
+      return prev;
+    });
+  }, []);
 
-  const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
+  const days = useMemo(() => buildCalendar(mergedData, activeMetric), [mergedData, activeMetric]);
+  const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
   const [selectedDay, setSelectedDay] = useState<DayEntry | null>(null);
@@ -321,14 +326,14 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-l from-card to-transparent" />
             <MobileHeatmap
-              data={sampleData}
+              data={mergedData}
               metric={activeMetric}
               numMonths={range === "90d" ? 3 : 12}
               selectedDate={selectedDay?.date ?? null}
               resetDate={resetDate}
-              onDayTap={(day) => setSelectedDay(selectedDay?.date === day.date ? null : day)}
+              onDayTap={(day) => setSelectedDay((prev) => prev?.date === day.date ? null : { ...day, recency: computeRecency(day.date) })}
               onDayLongPress={(day) => {
-                setSelectedDay(day);
+                setSelectedDay({ ...day, recency: computeRecency(day.date) });
               }}
             />
           </div>
@@ -389,11 +394,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
                 <div className="flex" style={{ gap: cellGap }}>
                   {weeks.map((week, wi) => {
-                    const isCurrentWeek = week.some((d) => {
-                      const now = new Date();
-                      const key = now.toISOString().slice(0, 10);
-                      return d.date === key;
-                    });
+                    const isCurrentWeek = week.some((d) => d.date === todayKey);
                     return (
                       <div
                         key={wi}
@@ -409,7 +410,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                             key={di}
                             className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
                             data-level={getLevel(day.count, activeMetric)}
-                            data-recent={getRecency(day.date)}
+                            data-recent={day.recency}
                             style={{ width: cellSize, height: cellSize, cursor: "pointer", borderRadius: cellSize > 14 ? 3 : 2 }}
                             onMouseEnter={(e) => handleMouseEnter(e, day)}
                             onMouseLeave={handleMouseLeave}
@@ -452,10 +453,10 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                       className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left text-destructive hover:bg-destructive/10 transition-colors"
                       onClick={() => {
                         const date = longPressDay.day.date;
-                        const prev = sampleData[date];
+                        const prev = mergedData[date];
                         if (prev) setUndoInfo({ date, stats: { ...prev } });
                         const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-                        setSampleData((p) => ({ ...p, [date]: empty }));
+                        setLocalOverrides((p) => ({ ...p, [date]: empty }));
                         setResetDate(date);
                         setTimeout(() => setResetDate(null), 600);
                         setLongPressDay(null);
@@ -478,14 +479,14 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             open={!!selectedDay}
             onClose={() => setSelectedDay(null)}
             onUpdate={(date, newStats) => {
-              setSampleData((prev) => ({ ...prev, [date]: newStats }));
+              setLocalOverrides((prev) => ({ ...prev, [date]: newStats }));
               setSelectedDay((prev) => prev ? { ...prev, stats: newStats, count: newStats[activeMetric] } : null);
             }}
             onReset={(date) => {
-              const prev = sampleData[date];
+              const prev = mergedData[date];
               if (prev) setUndoInfo({ date, stats: { ...prev } });
               const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-              setSampleData((p) => ({ ...p, [date]: empty }));
+              setLocalOverrides((p) => ({ ...p, [date]: empty }));
               setResetDate(date);
               setTimeout(() => setResetDate(null), 600);
             }}
@@ -497,7 +498,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             <span className="text-xs font-mono text-muted-foreground">Day reset</span>
             <button
               onClick={() => {
-                setSampleData((prev) => ({ ...prev, [undoInfo.date]: undoInfo.stats }));
+                setLocalOverrides((prev) => ({ ...prev, [undoInfo.date]: undoInfo.stats }));
                 setUndoInfo(null);
               }}
               className="text-xs font-mono font-bold uppercase tracking-wider text-foreground hover:opacity-70 transition-opacity"
