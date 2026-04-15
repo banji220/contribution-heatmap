@@ -221,8 +221,8 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
             ))}
           </div>
         </div>
-        );
-      })}
+        ))}
+    </div>
     </div>
 
     {/* Legend — outside scroll */}
