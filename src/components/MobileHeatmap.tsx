@@ -87,7 +87,17 @@ function buildMonths(data: Record<string, DayStats>, metric: MetricKey, numMonth
       }
       week.push(day);
     }
-    if (week.length > 0) weeks.push(week);
+    // Pad last week to 7 days
+    if (week.length > 0) {
+      while (week.length < 7) {
+        week.push({ date: "", dow: week.length, count: -1, stats: empty });
+      }
+      weeks.push(week);
+    }
+    // Pad to 6 weeks so all months have the same height
+    while (weeks.length < 6) {
+      weeks.push(Array.from({ length: 7 }, (_, i) => ({ date: "", dow: i, count: -1, stats: empty })));
+    }
 
     months.push({
       year,
@@ -133,16 +143,13 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
       className="flex gap-4 overflow-x-auto no-scrollbar scroll-gpu snap-x snap-mandatory scroll-smooth pb-2"
       style={{ touchAction: "pan-x" }}
     >
-      {months.map((month) => {
-        const now = new Date();
-        const isCurrent = month.year === now.getFullYear() && month.month === now.getMonth();
-        return (
+      {months.map((month) => (
           <div
             key={`${month.year}-${month.month}`}
             className="shrink-0 snap-center"
             style={{ width: gridWidth }}
           >
-            <div className={`text-xs font-mono font-bold uppercase tracking-wider mb-2 text-center ${isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
+            <div className="text-xs font-mono font-bold uppercase tracking-wider mb-2 text-center text-muted-foreground">
               {month.label}
             </div>
 
@@ -214,8 +221,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
             ))}
           </div>
         </div>
-        );
-      })}
+        ))}
     </div>
 
     {/* Legend — outside scroll */}
