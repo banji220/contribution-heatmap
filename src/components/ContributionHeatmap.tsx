@@ -61,10 +61,11 @@ function generateSampleData(): Record<string, number> {
 
 function getLevel(count: number): number {
   if (count === 0) return 0;
-  if (count <= 10) return 1;
-  if (count <= 25) return 2;
-  if (count <= 40) return 3;
-  return 4;
+  if (count <= 8) return 1;    // low — dark orange
+  if (count <= 20) return 2;   // medium — orange
+  if (count <= 35) return 3;   // strong — bright orange
+  if (count <= 50) return 4;   // very strong — orange-yellow
+  return 5;                    // elite — glowing yellow
 }
 
 export default function ContributionHeatmap() {
