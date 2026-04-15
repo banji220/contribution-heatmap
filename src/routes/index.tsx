@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import ContributionHeatmap from "../components/ContributionHeatmap";
-import StatsCards from "../components/StatsCards";
-import FeaturesSection from "../components/FeaturesSection";
-import CTASection from "../components/CTASection";
-import Footer from "../components/Footer";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -12,20 +8,18 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="px-4 py-5 sm:px-6 sm:py-6 md:px-10">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-xl animate-bounce-soft">
-              🚪
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-                Knock Tracker
-              </h1>
-            </div>
+      {/* Bold header strip */}
+      <header className="border-b-4 border-foreground px-6 py-5 sm:px-10">
+        <div className="mx-auto flex max-w-5xl items-end justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              KNOCK TRACKER
+            </h1>
+            <p className="mt-1 text-sm font-mono text-muted-foreground uppercase tracking-widest">
+              Every door counts
+            </p>
           </div>
-          <div className="bg-secondary rounded-full px-4 py-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground">
+          <div className="hidden sm:block border-2 border-foreground px-3 py-1 text-xs font-mono uppercase tracking-wider">
             2025
           </div>
         </div>
@@ -33,18 +27,6 @@ function Index() {
 
       {/* Heatmap section — untouched grid */}
       <ContributionHeatmap />
-
-      {/* Stats cards */}
-      <StatsCards />
-
-      {/* Features */}
-      <FeaturesSection />
-
-      {/* CTA */}
-      <CTASection />
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

@@ -196,18 +196,16 @@ export default function ContributionHeatmap() {
   const gridWidth = weeks.length * colWidth - GAP;
 
   return (
-    <section className="w-full px-4 py-8 sm:px-6 sm:py-10 md:px-10 bg-background">
+    <section className="w-full px-6 py-10 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight">
-              {totalContributions.toLocaleString()}
-            </span>
-            <span className="text-xs sm:text-sm font-mono text-muted-foreground uppercase tracking-wider">
-              doors knocked
-            </span>
-          </div>
-          <span className="sm:ml-auto flex items-center gap-4 text-sm font-mono">
+        <div className="mb-4 flex items-baseline gap-3 flex-wrap">
+          <span className="text-4xl font-bold tabular-nums tracking-tight">
+            {totalContributions.toLocaleString()}
+          </span>
+          <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+            doors knocked this year
+          </span>
+          <span className="ml-auto flex items-center gap-4 text-sm font-mono">
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
               <span className="text-muted-foreground">{currentStreak}d streak</span>
@@ -218,7 +216,7 @@ export default function ContributionHeatmap() {
           </span>
         </div>
 
-        <div ref={containerRef} className="overflow-x-auto rounded-2xl border border-border bg-card px-3 py-3 sm:px-5 sm:py-4 relative -mx-1 sm:mx-0">
+        <div ref={containerRef} className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3 relative">
           {/* Tooltip */}
           {tooltip && (
             <div
