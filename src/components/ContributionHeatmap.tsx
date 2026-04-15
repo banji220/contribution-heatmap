@@ -1,26 +1,34 @@
 import { useMemo } from "react";
 
-const WEEKS_TO_SHOW = 52;
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CELL = 11;
 const GAP = 3;
 
-function generateContributions() {
-  const today = new Date();
-  // Start from the nearest past Sunday to align weeks
-  const endDay = new Date(today);
-  const startDay = new Date(today);
-  startDay.setDate(today.getDate() - (WEEKS_TO_SHOW * 7 - 1) - today.getDay());
+type DayEntry = { date: string; dow: number; count: number };
 
-  const days: { date: Date; count: number }[] = [];
+function generateContributions(): DayEntry[] {
+  const today = new Date();
+  // Go back exactly one year
+  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate() + 1);
+  // Align start to the Sunday of that week
+  const startDay = new Date(oneYearAgo);
+  startDay.setDate(oneYearAgo.getDate() - oneYearAgo.getDay());
+
+  const days: DayEntry[] = [];
+  const seen = new Set<string>();
   const d = new Date(startDay);
-  while (d <= endDay) {
-    const rand = Math.random();
-    let count = 0;
-    if (rand > 0.3) count = Math.floor(Math.random() * 4);
-    if (rand > 0.7) count = Math.floor(Math.random() * 8) + 3;
-    if (rand > 0.92) count = Math.floor(Math.random() * 12) + 8;
-    days.push({ date: new Date(d), count });
+
+  while (d <= today) {
+    const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+    if (!seen.has(key)) {
+      seen.add(key);
+      const rand = Math.random();
+      let count = 0;
+      if (rand > 0.3) count = Math.floor(Math.random() * 4);
+      if (rand > 0.7) count = Math.floor(Math.random() * 8) + 3;
+      if (rand > 0.92) count = Math.floor(Math.random() * 12) + 8;
+      days.push({ date: key, dow: d.getDay(), count });
+    }
     d.setDate(d.getDate() + 1);
   }
   return days;
