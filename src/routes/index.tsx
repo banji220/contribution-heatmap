@@ -4,6 +4,7 @@ import ContributionHeatmap from "../components/ContributionHeatmap";
 import DailyMission from "../components/DailyMission";
 import QuickLog from "../components/QuickLog";
 import WeeklyInsights from "../components/WeeklyInsights";
+import StreakPanel from "../components/StreakPanel";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -41,6 +42,30 @@ function Index() {
   const [sampleData, setSampleData] = useState<Record<string, { doors: number; conversations: number; leads: number; appointments: number; wins: number }>>({});
   useEffect(() => { setSampleData(generateSampleData()); }, []);
 
+  // Compute streaks from sample data
+  const { currentStreak, longestStreak } = useMemo(() => {
+    const today = new Date();
+    const keys: string[] = [];
+    const d = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    while (d <= today) {
+      keys.push(d.toISOString().slice(0, 10));
+      d.setDate(d.getDate() + 1);
+    }
+    let current = 0;
+    for (let i = keys.length - 1; i >= 0; i--) {
+      if ((sampleData[keys[i]]?.doors ?? 0) > 0) current++;
+      else break;
+    }
+    let longest = 0;
+    let run = 0;
+    for (const key of keys) {
+      if ((sampleData[key]?.doors ?? 0) > 0) { run++; }
+      else { longest = Math.max(longest, run); run = 0; }
+    }
+    longest = Math.max(longest, run);
+    return { currentStreak: current, longestStreak: longest };
+  }, [sampleData]);
+
   const initialDoors = useMemo(() => {
     const hour = new Date().getHours();
     return Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40);
@@ -75,6 +100,7 @@ function Index() {
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
         <DailyMission doorsToday={doorsToday} target={target} />
         <WeeklyInsights data={sampleData} />
+        <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
       </div>
 
       <ContributionHeatmap />
