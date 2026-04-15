@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, memo } from "react";
 
 interface DayStats {
   doors: number;
@@ -35,10 +35,8 @@ function weekdayLabel(dateStr: string): string {
 
 type Period = "7d" | "30d";
 
-export default function TrendView({ data }: TrendViewProps) {
+export default memo(function TrendView({ data }: TrendViewProps) {
   const [period, setPeriod] = useState<Period>("7d");
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   const { days, values, max, avg, total, trend } = useMemo(() => {
     const n = period === "7d" ? 7 : 30;
@@ -56,8 +54,6 @@ export default function TrendView({ data }: TrendViewProps) {
 
     return { days, values, max, avg, total, trend: trendPct };
   }, [data, period]);
-
-  if (!mounted) return null;
 
   return (
     <section className="w-full px-4 sm:px-10 bg-background">
@@ -148,4 +144,4 @@ export default function TrendView({ data }: TrendViewProps) {
       </div>
     </section>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 
 interface Achievement {
   id: string;
@@ -49,12 +49,12 @@ function getWeekTotal(data: Record<string, { doors: number }>): number {
   return total;
 }
 
-export default function Achievements({ doorsToday, currentStreak, longestStreak, weekData }: AchievementsProps) {
-  const totalDoorsWeek = getWeekTotal(weekData);
-  const ctx: AchievementContext = { doorsToday, currentStreak, longestStreak, totalDoorsWeek };
+export default memo(function Achievements({ doorsToday, currentStreak, longestStreak, weekData }: AchievementsProps) {
+  const totalDoorsWeek = useMemo(() => getWeekTotal(weekData), [weekData]);
+  const ctx: AchievementContext = useMemo(() => ({ doorsToday, currentStreak, longestStreak, totalDoorsWeek }), [doorsToday, currentStreak, longestStreak, totalDoorsWeek]);
 
-  const unlocked = ACHIEVEMENTS.filter((a) => a.check(ctx));
-  const locked = ACHIEVEMENTS.filter((a) => !a.check(ctx));
+  const unlocked = useMemo(() => ACHIEVEMENTS.filter((a) => a.check(ctx)), [ctx]);
+  const locked = useMemo(() => ACHIEVEMENTS.filter((a) => !a.check(ctx)), [ctx]);
 
   // Track newly unlocked for animation
   const [celebrated, setCelebrated] = useState<Set<string>>(new Set());
@@ -150,4 +150,4 @@ export default function Achievements({ doorsToday, currentStreak, longestStreak,
       </section>
     </>
   );
-}
+});

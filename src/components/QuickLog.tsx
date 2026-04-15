@@ -1,11 +1,11 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, memo } from "react";
 
 interface QuickLogProps {
   onLog: (count: number) => void;
   todayDoors: number;
 }
 
-export default function QuickLog({ onLog, todayDoors }: QuickLogProps) {
+export default memo(function QuickLog({ onLog, todayDoors }: QuickLogProps) {
   const [flash, setFlash] = useState(false);
   const [lastAdded, setLastAdded] = useState<number | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -64,4 +64,4 @@ export default function QuickLog({ onLog, todayDoors }: QuickLogProps) {
       </div>
     </section>
   );
-}
+});

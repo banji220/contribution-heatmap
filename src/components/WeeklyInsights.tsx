@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 
 interface DayStats {
   doors: number;
@@ -34,7 +34,7 @@ function dayName(dateStr: string): string {
   return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString("en-US", { weekday: "short" });
 }
 
-export default function WeeklyInsights({ data }: WeeklyInsightsProps) {
+export default memo(function WeeklyInsights({ data }: WeeklyInsightsProps) {
   const insights = useMemo(() => {
     const weekDays = getWeekDays();
     const empty: DayStats = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
@@ -133,4 +133,4 @@ export default function WeeklyInsights({ data }: WeeklyInsightsProps) {
       </div>
     </section>
   );
-}
+});

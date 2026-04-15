@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect, memo } from "react";
 
 interface WeeklyGoalProps {
   data: Record<string, { doors: number; conversations: number; leads: number; appointments: number; wins: number }>;
@@ -20,7 +20,7 @@ function getWeekDays(): string[] {
   return days;
 }
 
-export default function WeeklyGoal({ data, weeklyTarget = 150, onTargetChange }: WeeklyGoalProps) {
+export default memo(function WeeklyGoal({ data, weeklyTarget = 150, onTargetChange }: WeeklyGoalProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(weeklyTarget));
   const inputRef = useRef<HTMLInputElement>(null);
@@ -117,4 +117,4 @@ export default function WeeklyGoal({ data, weeklyTarget = 150, onTargetChange }:
       </div>
     </section>
   );
-}
+});
