@@ -130,8 +130,8 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
     <>
     <div
       ref={scrollRef}
-      className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-2"
-      style={{ WebkitOverflowScrolling: "touch" }}
+      className="flex gap-4 overflow-x-auto no-scrollbar scroll-gpu snap-x snap-mandatory scroll-smooth pb-2"
+      style={{ touchAction: "pan-x" }}
     >
       {months.map((month) => {
         const now = new Date();
