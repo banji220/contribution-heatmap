@@ -198,12 +198,21 @@ export default function ContributionHeatmap() {
   return (
     <section className="w-full px-6 py-10 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-4 flex items-baseline gap-3">
+        <div className="mb-4 flex items-baseline gap-3 flex-wrap">
           <span className="text-4xl font-bold tabular-nums tracking-tight">
             {totalContributions.toLocaleString()}
           </span>
           <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
             doors knocked this year
+          </span>
+          <span className="ml-auto flex items-center gap-4 text-sm font-mono">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-muted-foreground">{currentStreak}d streak</span>
+            </span>
+            <span className="text-muted-foreground opacity-60">
+              best {longestStreak}d
+            </span>
           </span>
         </div>
 
