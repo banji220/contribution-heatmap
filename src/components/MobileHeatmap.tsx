@@ -119,24 +119,27 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
   const gridWidth = 7 * CELL_SIZE + 6 * GAP;
   const monthWidth = gridWidth + 24; // grid + padding
 
-  // Preserve scroll position across data-driven re-renders
+  // Preserve the currently viewed month/scroll position across data updates
   const savedScroll = useRef<number | null>(null);
   const hasScrolled = useRef(false);
 
-  // Save scroll position before DOM update
-  useEffect(() => {
-    if (scrollRef.current && hasScrolled.current) {
+  const handleScroll = () => {
+    if (scrollRef.current) {
       savedScroll.current = scrollRef.current.scrollLeft;
     }
-  });
+  };
 
-  // Restore scroll position after render, or auto-scroll on mount
   useLayoutEffect(() => {
     if (!scrollRef.current) return;
+
     if (!hasScrolled.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+      savedScroll.current = scrollRef.current.scrollLeft;
       hasScrolled.current = true;
-    } else if (savedScroll.current !== null) {
+      return;
+    }
+
+    if (savedScroll.current !== null) {
       scrollRef.current.scrollLeft = savedScroll.current;
     }
   }, [months]);
@@ -145,6 +148,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
     <>
     <div
       ref={scrollRef}
+      onScroll={handleScroll}
       className="flex gap-4 overflow-x-auto no-scrollbar scroll-gpu snap-x snap-mandatory scroll-smooth pb-2"
       style={{ touchAction: "pan-x" }}
     >
