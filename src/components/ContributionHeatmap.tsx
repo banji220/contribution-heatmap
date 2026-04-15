@@ -433,7 +433,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             </div>
           </div>
         )}
-        </div>
 
         {selectedDay && (
           <DayDetail
