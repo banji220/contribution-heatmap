@@ -172,7 +172,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
               <div key={wi} className="flex" style={{ gap: GAP }}>
                 {week.map((day, di) => {
                   if (day.count === -1) {
-                    return <div key={di} style={{ width: CELL_SIZE, height: CELL_SIZE }} />;
+                    return <div key={di} className="heatmap-cell" data-level="0" data-recent="0" style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, opacity: 0.3 }} />;
                   }
                   const level = getLevel(day.count, metric);
                   const isSelected = selectedDate === day.date;
