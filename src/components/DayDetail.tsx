@@ -168,6 +168,24 @@ export default function DayDetail({ date, stats, open, onClose, onUpdate, onRese
                   Cancel
                 </button>
               </>
+            ) : confirmingReset ? (
+              <div className="flex flex-col gap-2 w-full">
+                <p className="text-xs font-mono text-muted-foreground text-center">Reset all values to zero?</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleReset}
+                    className="flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    onClick={() => setConfirmingReset(false)}
+                    className="flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             ) : (
               <>
                 <button
@@ -177,7 +195,7 @@ export default function DayDetail({ date, stats, open, onClose, onUpdate, onRese
                   ✏️ Edit Day
                 </button>
                 <button
-                  onClick={handleReset}
+                  onClick={() => setConfirmingReset(true)}
                   className="flex-1 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-muted text-destructive hover:bg-destructive/10 transition-colors"
                 >
                   🗑 Reset Day
