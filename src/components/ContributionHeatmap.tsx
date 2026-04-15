@@ -109,6 +109,7 @@ export default function ContributionHeatmap() {
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
   const [selectedDay, setSelectedDay] = useState<DayEntry | null>(null);
   const [undoInfo, setUndoInfo] = useState<{ date: string; stats: DayStats } | null>(null);
+  const [resetDate, setResetDate] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -307,7 +308,7 @@ export default function ContributionHeatmap() {
                     {week.map((day, di) => (
                       <div
                         key={di}
-                        className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}`}
+                        className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
                         data-level={getLevel(day.count, activeMetric)}
                         style={{ width: CELL, height: CELL, cursor: "pointer" }}
                         onMouseEnter={(e) => handleMouseEnter(e, day)}
@@ -345,6 +346,8 @@ export default function ContributionHeatmap() {
               if (prev) setUndoInfo({ date, stats: { ...prev } });
               const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
               setSampleData((p) => ({ ...p, [date]: empty }));
+              setResetDate(date);
+              setTimeout(() => setResetDate(null), 600);
             }}
           />
         )}
