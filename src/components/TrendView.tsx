@@ -60,12 +60,12 @@ export default function TrendView({ data }: TrendViewProps) {
   if (!mounted) return null;
 
   return (
-    <section className="w-full px-6 sm:px-10 bg-background">
+    <section className="w-full px-4 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <div className="border-2 border-foreground bg-card px-5 py-5">
+        <div className="border-2 border-foreground bg-card px-4 py-4 sm:px-5 sm:py-5">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold tracking-tight uppercase">Trend</h2>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg font-bold tracking-tight uppercase">Trend</h2>
             <div className="flex gap-1">
               {(["7d", "30d"] as Period[]).map((p) => (
                 <button
