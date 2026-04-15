@@ -240,7 +240,7 @@ export default function ContributionHeatmap() {
               {totalContributions.toLocaleString()}
             </span>
             <span className="text-xs sm:text-sm font-mono text-muted-foreground uppercase tracking-wider">
-              {metricInfo.short} this year
+              {metricInfo.short} {range === "90d" ? "last 90 days" : "this year"}
             </span>
           </div>
           <span className="sm:ml-auto flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
