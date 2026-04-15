@@ -122,7 +122,7 @@ export default function ContributionHeatmap() {
           </span>
         </div>
 
-        <div className="overflow-x-auto rounded-md border border-border bg-card px-4 py-3">
+        <div className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3">
           {/* Month labels row */}
           <div className="relative" style={{ height: 15, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
             {monthLabels.map((m, i) => {
