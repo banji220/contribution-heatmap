@@ -7,11 +7,10 @@ const DAY_LABEL_WIDTH = 28;
 
 type DayEntry = { date: string; dow: number; count: number };
 
-function generateContributions(): DayEntry[] {
+/** Accepts a map of "YYYY-MM-DD" → doors knocked. Builds the full calendar grid, 0 for missing days. */
+function buildCalendar(data: Record<string, number>): DayEntry[] {
   const today = new Date();
-  // Go back exactly one year
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate() + 1);
-  // Align start to the Sunday of that week
   const startDay = new Date(oneYearAgo);
   startDay.setDate(oneYearAgo.getDate() - oneYearAgo.getDay());
 
@@ -20,31 +19,57 @@ function generateContributions(): DayEntry[] {
   const d = new Date(startDay);
 
   while (d <= today) {
-    const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+    const key = d.toISOString().slice(0, 10);
     if (!seen.has(key)) {
       seen.add(key);
-      const rand = Math.random();
-      let count = 0;
-      if (rand > 0.3) count = Math.floor(Math.random() * 4);
-      if (rand > 0.7) count = Math.floor(Math.random() * 8) + 3;
-      if (rand > 0.92) count = Math.floor(Math.random() * 12) + 8;
-      days.push({ date: key, dow: d.getDay(), count });
+      days.push({ date: key, dow: d.getDay(), count: data[key] ?? 0 });
     }
     d.setDate(d.getDate() + 1);
   }
   return days;
 }
 
+/** Generate sample doors-knocked data for demo purposes */
+function generateSampleData(): Record<string, number> {
+  const data: Record<string, number> = {};
+  const today = new Date();
+  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+  const d = new Date(oneYearAgo);
+
+  while (d <= today) {
+    const key = d.toISOString().slice(0, 10);
+    const dayOfWeek = d.getDay();
+    // Weekdays are busier, weekends lighter
+    const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+    const rand = Math.random();
+
+    let count = 0;
+    if (isWeekday) {
+      if (rand > 0.15) count = Math.floor(Math.random() * 20) + 5;   // 5–24
+      if (rand > 0.5) count = Math.floor(Math.random() * 30) + 15;   // 15–44
+      if (rand > 0.85) count = Math.floor(Math.random() * 40) + 30;  // 30–69
+    } else {
+      if (rand > 0.5) count = Math.floor(Math.random() * 10) + 1;    // 1–10
+      if (rand > 0.8) count = Math.floor(Math.random() * 15) + 5;    // 5–19
+    }
+
+    data[key] = count;
+    d.setDate(d.getDate() + 1);
+  }
+  return data;
+}
+
 function getLevel(count: number): number {
   if (count === 0) return 0;
-  if (count <= 3) return 1;
-  if (count <= 6) return 2;
-  if (count <= 9) return 3;
+  if (count <= 10) return 1;
+  if (count <= 25) return 2;
+  if (count <= 40) return 3;
   return 4;
 }
 
 export default function ContributionHeatmap() {
-  const days = useMemo(() => generateContributions(), []);
+  const sampleData = useMemo(() => generateSampleData(), []);
+  const days = useMemo(() => buildCalendar(sampleData), [sampleData]);
 
   // Group into weeks (columns). Each week is Sun–Sat (7 rows).
   const weeks = useMemo(() => {
@@ -87,7 +112,7 @@ export default function ContributionHeatmap() {
     <section className="w-full px-4 py-10 sm:px-6 lg:px-8 bg-background">
       <div className="mx-auto max-w-5xl">
         <p className="mb-3 text-sm text-muted-foreground">
-          {totalContributions.toLocaleString()} contributions in the last year
+          {totalContributions.toLocaleString()} doors knocked in the last year
         </p>
 
         <div className="overflow-x-auto rounded-md border border-border bg-card px-4 py-3">
@@ -135,7 +160,7 @@ export default function ContributionHeatmap() {
                       className="heatmap-cell"
                       data-level={getLevel(day.count)}
                       style={{ width: CELL, height: CELL }}
-                      title={`${day.count} contributions on ${day.date}`}
+                      title={`${day.count} doors knocked on ${day.date}`}
                     />
                   ))}
                 </div>
