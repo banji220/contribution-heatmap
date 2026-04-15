@@ -85,7 +85,7 @@ export default memo(function MomentumMeter({ data }: MomentumMeterProps) {
           {/* Score gauge */}
           <div className="relative h-8 w-full bg-muted overflow-hidden mb-1">
             <div
-              className="h-full transition-all duration-700 ease-out"
+              className="h-full transition-[width] duration-300 ease-out"
               style={{ width: `${score}%`, backgroundColor: barColor }}
             />
             <span className="absolute inset-0 flex items-center justify-center text-xs font-mono font-bold text-foreground">
@@ -110,7 +110,7 @@ export default memo(function MomentumMeter({ data }: MomentumMeterProps) {
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full relative" style={{ height: 32 }}>
                     <div
-                      className="absolute bottom-0 w-full transition-all duration-500"
+                      className="absolute bottom-0 w-full"
                       style={{
                         height: `${Math.max(h, 4)}%`,
                         backgroundColor: count > 0 ? barColor : "var(--heatmap-0)",

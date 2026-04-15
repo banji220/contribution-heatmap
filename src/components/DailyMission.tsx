@@ -73,7 +73,7 @@ export default memo(function DailyMission({ doorsToday, target }: DailyMissionPr
           {/* Progress bar */}
           <div className="relative h-6 w-full bg-muted overflow-hidden">
             <div
-              className="h-full transition-all duration-500 ease-out"
+              className="h-full transition-[width] duration-300 ease-out"
               style={{
                 width: `${percent}%`,
                 background: status === "done"
