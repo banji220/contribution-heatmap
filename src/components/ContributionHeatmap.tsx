@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CELL = 10;
@@ -69,7 +69,8 @@ function getLevel(count: number): number {
 }
 
 export default function ContributionHeatmap() {
-  const sampleData = useMemo(() => generateSampleData(), []);
+  const [sampleData, setSampleData] = useState<Record<string, number>>({});
+  useEffect(() => { setSampleData(generateSampleData()); }, []);
   const days = useMemo(() => buildCalendar(sampleData), [sampleData]);
 
   // Group into weeks (columns). Each week is Sun–Sat (7 rows).
@@ -110,13 +111,18 @@ export default function ContributionHeatmap() {
   const gridWidth = weeks.length * colWidth - GAP;
 
   return (
-    <section className="w-full px-4 py-10 sm:px-6 lg:px-8 bg-background">
+    <section className="w-full px-6 py-10 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <p className="mb-3 text-sm text-muted-foreground">
-          {totalContributions.toLocaleString()} doors knocked in the last year
-        </p>
+        <div className="mb-4 flex items-baseline gap-3">
+          <span className="text-4xl font-bold tabular-nums tracking-tight">
+            {totalContributions.toLocaleString()}
+          </span>
+          <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+            doors knocked this year
+          </span>
+        </div>
 
-        <div className="overflow-x-auto rounded-md border border-border bg-card px-4 py-3">
+        <div className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3">
           {/* Month labels row */}
           <div className="relative" style={{ height: 15, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
             {monthLabels.map((m, i) => {
