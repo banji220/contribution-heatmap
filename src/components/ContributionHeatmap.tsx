@@ -131,8 +131,10 @@ export default function ContributionHeatmap() {
         setTransitioning(true);
         setTimeout(() => {
           setRange(newRange);
-          setTimeout(() => setTransitioning(false), 50);
-        }, 150);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => setTransitioning(false));
+          });
+        }, 250);
       }
     }
   }, [isMobile, userOverride]);
