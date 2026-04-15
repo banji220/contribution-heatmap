@@ -208,6 +208,16 @@ export default function ContributionHeatmap() {
   const colWidth = CELL + GAP;
   const gridWidth = weeks.length * colWidth - GAP;
 
+  if (!mounted) {
+    return (
+      <section className="w-full px-4 py-6 sm:px-10 sm:py-10 bg-background">
+        <div className="mx-auto max-w-5xl">
+          <div className="h-48 flex items-center justify-center text-muted-foreground text-sm font-mono">Loading heatmap…</div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="w-full px-4 py-6 sm:px-10 sm:py-10 bg-background">
       <div className="mx-auto max-w-5xl">
