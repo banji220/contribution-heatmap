@@ -297,11 +297,12 @@ export default function ContributionHeatmap() {
                   {week.map((day, di) => (
                     <div
                       key={di}
-                      className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}`}
+                      className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}`}
                       data-level={getLevel(day.count, activeMetric)}
-                      style={{ width: CELL, height: CELL }}
+                      style={{ width: CELL, height: CELL, cursor: "pointer" }}
                       onMouseEnter={(e) => handleMouseEnter(e, day)}
                       onMouseLeave={handleMouseLeave}
+                      onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
                     />
                   ))}
                 </div>
