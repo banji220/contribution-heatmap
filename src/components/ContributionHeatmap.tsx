@@ -485,8 +485,8 @@ export default function ContributionHeatmap() {
             </div>
           </div>
         )}
+        </div>
 
-        {selectedDay && (
           <DayDetail
             date={selectedDay.date}
             stats={selectedDay.stats}
