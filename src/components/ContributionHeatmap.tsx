@@ -216,7 +216,7 @@ export default function ContributionHeatmap() {
           </span>
         </div>
 
-        <div ref={containerRef} className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3 relative">
+        <div ref={containerRef} className="overflow-x-auto rounded-2xl border border-border bg-card px-5 py-4 relative">
           {/* Tooltip */}
           {tooltip && (
             <div
