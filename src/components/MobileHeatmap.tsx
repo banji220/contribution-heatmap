@@ -175,6 +175,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
                       key={di}
                       className={`heatmap-cell relative flex items-center justify-center${isSelected ? " ring-2 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
                       data-level={level}
+                      data-recent={getRecency(day.date)}
                       style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, cursor: "pointer" }}
                       onClick={() => {
                         if (!didLongPress.current) onDayTap(day);
