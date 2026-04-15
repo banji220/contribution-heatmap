@@ -331,6 +331,7 @@ export default function ContributionHeatmap() {
           </div>
         </div>
 
+        <div className="transition-opacity duration-200 ease-in-out" style={{ opacity: transitioning ? 0 : 1 }}>
         {isMobile ? (
           <div className="border-2 border-foreground bg-card px-3 py-3 relative">
             <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
