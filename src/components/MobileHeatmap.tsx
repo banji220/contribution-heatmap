@@ -121,78 +121,80 @@ export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, 
       style={{ WebkitOverflowScrolling: "touch" }}
     >
       {months.map((month) => (
-        <div key={`${month.year}-${month.month}`}>
-          <div className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-2">
+        <div
+          key={`${month.year}-${month.month}`}
+          className="shrink-0 snap-center"
+          style={{ width: gridWidth }}
+        >
+          <div className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-2 text-center">
             {month.label}
           </div>
 
-          <div style={{ width: gridWidth }} className="mx-auto">
-            {/* DOW headers */}
-            <div className="flex" style={{ gap: GAP, marginBottom: GAP }}>
-              {DOW_LABELS.map((label, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-center text-[10px] font-mono text-muted-foreground"
-                  style={{ width: CELL_SIZE, height: 20 }}
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
+          {/* DOW headers */}
+          <div className="flex" style={{ gap: GAP, marginBottom: GAP }}>
+            {DOW_LABELS.map((label, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-center text-[10px] font-mono text-muted-foreground"
+                style={{ width: CELL_SIZE, height: 20 }}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
 
-            {/* Weeks */}
-            <div className="flex flex-col" style={{ gap: GAP }}>
-              {month.weeks.map((week, wi) => (
-                <div key={wi} className="flex" style={{ gap: GAP }}>
-                  {week.map((day, di) => {
-                    if (day.count === -1) {
-                      return <div key={di} style={{ width: CELL_SIZE, height: CELL_SIZE }} />;
-                    }
-                    const level = getLevel(day.count, metric);
-                    const isSelected = selectedDate === day.date;
-                    const isReset = resetDate === day.date;
-                    return (
-                      <div
-                        key={di}
-                        className={`heatmap-cell relative flex items-center justify-center${isSelected ? " ring-2 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
-                        data-level={level}
-                        style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, cursor: "pointer" }}
-                        onClick={() => {
-                          if (!didLongPress.current) onDayTap(day);
-                        }}
-                        onTouchStart={() => {
-                          didLongPress.current = false;
-                          longPressTimer.current = setTimeout(() => {
-                            didLongPress.current = true;
-                            longPressTimer.current = null;
-                            onDayLongPress(day);
-                          }, 400);
-                        }}
-                        onTouchEnd={(e) => {
-                          if (longPressTimer.current) {
-                            clearTimeout(longPressTimer.current);
-                            longPressTimer.current = null;
-                          }
-                          if (didLongPress.current) e.preventDefault();
-                        }}
-                        onTouchMove={() => {
-                          if (longPressTimer.current) {
-                            clearTimeout(longPressTimer.current);
-                            longPressTimer.current = null;
-                          }
-                        }}
-                      >
-                        {day.count > 0 && (
-                          <span className="text-[9px] font-mono font-bold tabular-nums opacity-70 text-background">
-                            {day.count}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
+          {/* Weeks */}
+          <div className="flex flex-col" style={{ gap: GAP }}>
+            {month.weeks.map((week, wi) => (
+              <div key={wi} className="flex" style={{ gap: GAP }}>
+                {week.map((day, di) => {
+                  if (day.count === -1) {
+                    return <div key={di} style={{ width: CELL_SIZE, height: CELL_SIZE }} />;
+                  }
+                  const level = getLevel(day.count, metric);
+                  const isSelected = selectedDate === day.date;
+                  const isReset = resetDate === day.date;
+                  return (
+                    <div
+                      key={di}
+                      className={`heatmap-cell relative flex items-center justify-center${isSelected ? " ring-2 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
+                      data-level={level}
+                      style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, cursor: "pointer" }}
+                      onClick={() => {
+                        if (!didLongPress.current) onDayTap(day);
+                      }}
+                      onTouchStart={() => {
+                        didLongPress.current = false;
+                        longPressTimer.current = setTimeout(() => {
+                          didLongPress.current = true;
+                          longPressTimer.current = null;
+                          onDayLongPress(day);
+                        }, 400);
+                      }}
+                      onTouchEnd={(e) => {
+                        if (longPressTimer.current) {
+                          clearTimeout(longPressTimer.current);
+                          longPressTimer.current = null;
+                        }
+                        if (didLongPress.current) e.preventDefault();
+                      }}
+                      onTouchMove={() => {
+                        if (longPressTimer.current) {
+                          clearTimeout(longPressTimer.current);
+                          longPressTimer.current = null;
+                        }
+                      }}
+                    >
+                      {day.count > 0 && (
+                        <span className="text-[9px] font-mono font-bold tabular-nums opacity-70 text-background">
+                          {day.count}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       ))}
