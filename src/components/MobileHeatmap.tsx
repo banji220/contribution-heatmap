@@ -119,12 +119,25 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
   const gridWidth = 7 * CELL_SIZE + 6 * GAP;
   const monthWidth = gridWidth + 24; // grid + padding
 
-  // Auto-scroll to the end (most recent month) only on mount
+  // Preserve scroll position across data-driven re-renders
+  const savedScroll = useRef<number | null>(null);
   const hasScrolled = useRef(false);
-  React.useEffect(() => {
-    if (!hasScrolled.current && scrollRef.current) {
+
+  // Save scroll position before DOM update
+  useEffect(() => {
+    if (scrollRef.current && hasScrolled.current) {
+      savedScroll.current = scrollRef.current.scrollLeft;
+    }
+  });
+
+  // Restore scroll position after render, or auto-scroll on mount
+  useLayoutEffect(() => {
+    if (!scrollRef.current) return;
+    if (!hasScrolled.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
       hasScrolled.current = true;
+    } else if (savedScroll.current !== null) {
+      scrollRef.current.scrollLeft = savedScroll.current;
     }
   }, [months]);
 
