@@ -69,7 +69,8 @@ function getLevel(count: number): number {
 }
 
 export default function ContributionHeatmap() {
-  const sampleData = useMemo(() => generateSampleData(), []);
+  const [sampleData, setSampleData] = useState<Record<string, number>>({});
+  useEffect(() => { setSampleData(generateSampleData()); }, []);
   const days = useMemo(() => buildCalendar(sampleData), [sampleData]);
 
   // Group into weeks (columns). Each week is Sun–Sat (7 rows).
