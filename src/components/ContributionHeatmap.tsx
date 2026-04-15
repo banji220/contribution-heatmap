@@ -269,7 +269,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
           </div>
           <span className="sm:ml-auto flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
             <span className="flex items-center gap-1.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="inline-block w-2 h-2 rounded-full bg-primary" />
               <span className="text-muted-foreground">{currentStreak}d streak</span>
             </span>
             <span className="text-muted-foreground opacity-60">
@@ -313,12 +313,8 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
         </div>
 
         <div
-          className="transition-all duration-300 ease-in-out"
-          style={{
-            opacity: transitioning ? 0 : 1,
-            transform: transitioning ? "scale(0.97)" : "scale(1)",
-            filter: transitioning ? "blur(4px)" : "blur(0px)",
-          }}
+          className="transition-opacity duration-200 ease-in-out"
+          style={{ opacity: transitioning ? 0 : 1 }}
         >
         {isMobile ? (
           <div className="border-2 border-foreground bg-card px-3 py-3 relative">
