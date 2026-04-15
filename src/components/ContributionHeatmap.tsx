@@ -365,6 +365,43 @@ export default function ContributionHeatmap() {
               ))}
               <span className="ml-1 font-bold">More</span>
             </div>
+
+            {longPressDay && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setLongPressDay(null)} onTouchStart={() => setLongPressDay(null)} />
+                <div
+                  className="absolute z-50 bg-card border-2 border-foreground shadow-lg flex flex-col min-w-[120px] animate-in fade-in zoom-in-95 duration-150"
+                  style={{ left: Math.max(8, longPressDay.x - 60), top: longPressDay.y }}
+                >
+                  <button
+                    className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left hover:bg-muted transition-colors"
+                    onClick={() => {
+                      const day = longPressDay.day;
+                      setLongPressDay(null);
+                      setSelectedDay(day);
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <div className="border-t border-foreground/10" />
+                  <button
+                    className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left text-destructive hover:bg-destructive/10 transition-colors"
+                    onClick={() => {
+                      const date = longPressDay.day.date;
+                      const prev = sampleData[date];
+                      if (prev) setUndoInfo({ date, stats: { ...prev } });
+                      const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
+                      setSampleData((p) => ({ ...p, [date]: empty }));
+                      setResetDate(date);
+                      setTimeout(() => setResetDate(null), 600);
+                      setLongPressDay(null);
+                    }}
+                  >
+                    🗑 Reset
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
