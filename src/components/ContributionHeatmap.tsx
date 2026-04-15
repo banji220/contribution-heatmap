@@ -172,7 +172,7 @@ export default function ContributionHeatmap() {
           {/* Legend */}
           <div className="mt-2 flex items-center justify-end gap-1 text-[11px] text-muted-foreground">
             <span className="mr-0.5">Less</span>
-            {[0, 1, 2, 3, 4].map((level) => (
+            {[0, 1, 2, 3, 4, 5].map((level) => (
               <div key={level} className="heatmap-cell" data-level={level} style={{ width: CELL, height: CELL }} />
             ))}
             <span className="ml-0.5">More</span>
