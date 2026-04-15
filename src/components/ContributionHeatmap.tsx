@@ -394,11 +394,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
                 <div className="flex" style={{ gap: cellGap }}>
                   {weeks.map((week, wi) => {
-                    const isCurrentWeek = week.some((d) => {
-                      const now = new Date();
-                      const key = now.toISOString().slice(0, 10);
-                      return d.date === key;
-                    });
+                    const isCurrentWeek = week.some((d) => d.date === todayKey);
                     return (
                       <div
                         key={wi}
