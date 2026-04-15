@@ -210,6 +210,7 @@ function Index() {
         <WeeklyInsights data={statsData} />
         <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
         <MomentumMeter data={statsData} />
+        <TrendView data={statsData} />
         <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} />
       </div>
 
