@@ -114,7 +114,7 @@ export default memo(function TrendView({ data }: TrendViewProps) {
                     </div>
                   </div>
                   <div
-                    className={`w-full transition-all duration-300 ${
+                    className={`w-full ${
                       isToday ? "bg-primary" : v > 0 ? "bg-foreground/70" : "bg-muted"
                     }`}
                     style={{ height: `${Math.max(h, 2)}%`, minHeight: 2 }}

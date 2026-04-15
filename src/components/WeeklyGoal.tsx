@@ -95,7 +95,7 @@ export default memo(function WeeklyGoal({ data, weeklyTarget = 150, onTargetChan
           {/* Progress bar */}
           <div className={`relative h-3 w-full overflow-hidden ${done ? "bg-background/20" : "bg-muted"}`}>
             <div
-              className="h-full transition-all duration-700 ease-out"
+              className="h-full transition-[width] duration-300 ease-out"
               style={{
                 width: `${percent}%`,
                 backgroundColor: done ? "var(--background)" : percent > 60 ? "var(--heatmap-4)" : percent > 30 ? "var(--heatmap-3)" : "var(--heatmap-2)",

@@ -91,29 +91,23 @@ interface ContributionHeatmapProps {
 }
 
 export default function ContributionHeatmap({ data: externalData }: ContributionHeatmapProps) {
-  const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
   const [localOverrides, setLocalOverrides] = useState<Record<string, DayStats>>({});
-  const mergedData = useMemo(() => ({ ...externalData, ...localOverrides }), [externalData, localOverrides]);
+  const mergedData = useMemo(() => {
+    const keys = Object.keys(localOverrides);
+    if (keys.length === 0) return externalData;
+    const merged = { ...externalData };
+    for (const k of keys) merged[k] = localOverrides[k];
+    return merged;
+  }, [externalData, localOverrides]);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
-  const [range, setRange] = useState<"90d" | "year">("year");
+  const [range, setRange] = useState<"90d" | "year">(isMobile ? "90d" : "year");
   const [userOverride, setUserOverride] = useState(false);
-  const [transitioning, setTransitioning] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   // Auto-switch based on screen size, but respect manual override
   useEffect(() => {
     if (!userOverride) {
-      const newRange = isMobile ? "90d" : "year";
-      if (newRange !== range) {
-        setTransitioning(true);
-        setTimeout(() => {
-          setRange(newRange);
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => setTransitioning(false));
-          });
-        }, 150);
-      }
+      setRange(isMobile ? "90d" : "year");
     }
   }, [isMobile, userOverride]);
 
@@ -121,19 +115,10 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   useEffect(() => { setUserOverride(false); }, [isMobile]);
 
   const handleRangeChange = useCallback((newRange: "90d" | "year") => {
-    setRange((prev) => {
-      if (prev === newRange) return prev;
-      setUserOverride(true);
-      setTransitioning(true);
-      setTimeout(() => {
-        setRange(newRange);
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => setTransitioning(false));
-        });
-      }, 150);
-      return prev;
-    });
-  }, []);
+    if (newRange === range) return;
+    setUserOverride(true);
+    setRange(newRange);
+  }, [range]);
 
   const days = useMemo(() => buildCalendar(mergedData, activeMetric), [mergedData, activeMetric]);
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -249,15 +234,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   const colWidth = cellSize + cellGap;
   const gridWidth = weeks.length * colWidth - cellGap;
 
-  if (!mounted) {
-    return (
-      <section className="w-full px-4 py-6 sm:px-10 sm:py-10 bg-background">
-        <div className="mx-auto max-w-5xl">
-          <div className="h-48 flex items-center justify-center text-muted-foreground text-sm font-mono">Loading heatmap…</div>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="w-full px-4 py-6 sm:px-10 sm:py-10 bg-background">
@@ -317,10 +293,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
           </div>
         </div>
 
-        <div
-          className="transition-opacity duration-200 ease-in-out"
-          style={{ opacity: transitioning ? 0 : 1 }}
-        >
+        <div>
         {isMobile ? (
           <div className="border-2 border-foreground bg-card px-3 py-3 relative">
             <MobileHeatmap
