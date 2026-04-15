@@ -57,34 +57,6 @@ function buildCalendar(data: Record<string, DayStats>, metric: MetricKey): DayEn
   return days;
 }
 
-function generateSampleData(): Record<string, DayStats> {
-  const data: Record<string, DayStats> = {};
-  const today = new Date();
-  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-  const d = new Date(oneYearAgo);
-
-  while (d <= today) {
-    const key = d.toISOString().slice(0, 10);
-    const isWeekday = d.getDay() >= 1 && d.getDay() <= 5;
-    const rand = Math.random();
-    let doors = 0;
-    if (isWeekday) {
-      if (rand > 0.15) doors = Math.floor(Math.random() * 20) + 5;
-      if (rand > 0.5) doors = Math.floor(Math.random() * 30) + 15;
-      if (rand > 0.85) doors = Math.floor(Math.random() * 40) + 30;
-    } else {
-      if (rand > 0.5) doors = Math.floor(Math.random() * 10) + 1;
-      if (rand > 0.8) doors = Math.floor(Math.random() * 15) + 5;
-    }
-    const conversations = doors > 0 ? Math.floor(doors * (0.3 + Math.random() * 0.3)) : 0;
-    const leads = conversations > 0 ? Math.floor(conversations * (0.2 + Math.random() * 0.4)) : 0;
-    const appointments = leads > 0 ? Math.floor(leads * (0.3 + Math.random() * 0.4)) : 0;
-    const wins = appointments > 0 ? Math.floor(appointments * (0.2 + Math.random() * 0.5)) : 0;
-    data[key] = { doors, conversations, leads, appointments, wins };
-    d.setDate(d.getDate() + 1);
-  }
-  return data;
-}
 
 function getLevel(count: number, metric: MetricKey): number {
   if (count === 0) return 0;
@@ -113,15 +85,20 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function ContributionHeatmap() {
+interface ContributionHeatmapProps {
+  data: Record<string, DayStats>;
+}
+
+export default function ContributionHeatmap({ data: externalData }: ContributionHeatmapProps) {
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
-  const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
+  const [sampleData, setSampleData] = useState<Record<string, DayStats>>(externalData);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
   const [range, setRange] = useState<"90d" | "year">("year");
   const [userOverride, setUserOverride] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
-  useEffect(() => { setSampleData(generateSampleData()); setMounted(true); }, []);
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setSampleData(externalData); }, [externalData]);
 
   // Auto-switch based on screen size, but respect manual override
   useEffect(() => {
