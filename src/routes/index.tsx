@@ -78,6 +78,8 @@ function Index() {
     setDoorsToday(Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40));
   }, []);
 
+  const [weeklyTarget, setWeeklyTarget] = useState(150);
+
   const handleLog = useCallback((count: number) => {
     setDoorsToday((prev) => prev + count);
   }, []);
