@@ -172,7 +172,7 @@ function Index() {
       <header className="border-b-4 border-foreground px-4 py-3 sm:px-10 sm:py-5">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <img src={logoImg} alt="Knock Tracker logo" className="h-8 sm:h-10 w-auto" />
+            <img src={logoImg} alt="Knock Tracker logo" className="h-10 sm:h-14 w-auto dark:invert-0 invert" />
             <div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
                 KNOCK TRACKER
