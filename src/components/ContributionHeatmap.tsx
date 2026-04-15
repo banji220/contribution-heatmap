@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const CELL = 11;
-const GAP = 3;
+const CELL = 10;
+const GAP = 2;
+const DAY_LABEL_WIDTH = 28;
 
 type DayEntry = { date: string; dow: number; count: number };
 
