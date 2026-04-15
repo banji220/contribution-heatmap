@@ -95,11 +95,11 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
-  --heatmap-0: oklch(0.95 0.005 155);
-  --heatmap-1: oklch(0.82 0.12 155);
-  --heatmap-2: oklch(0.68 0.17 155);
-  --heatmap-3: oklch(0.54 0.19 155);
-  --heatmap-4: oklch(0.42 0.17 155);
+  --heatmap-0: oklch(0.95 0.01 70);
+  --heatmap-1: oklch(0.85 0.12 80);
+  --heatmap-2: oklch(0.75 0.18 65);
+  --heatmap-3: oklch(0.65 0.2 50);
+  --heatmap-4: oklch(0.55 0.22 40);
 }
 
 .dark {
@@ -135,11 +135,11 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
-  --heatmap-0: oklch(0.22 0.02 155);
-  --heatmap-1: oklch(0.38 0.12 155);
-  --heatmap-2: oklch(0.52 0.17 155);
-  --heatmap-3: oklch(0.66 0.19 155);
-  --heatmap-4: oklch(0.78 0.17 155);
+  --heatmap-0: oklch(0.2 0.01 50);
+  --heatmap-1: oklch(0.4 0.12 55);
+  --heatmap-2: oklch(0.55 0.18 50);
+  --heatmap-3: oklch(0.68 0.2 45);
+  --heatmap-4: oklch(0.78 0.22 40);
 }
 
 /* Heatmap cells */
