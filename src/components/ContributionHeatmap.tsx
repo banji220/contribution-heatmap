@@ -175,10 +175,18 @@ export default function ContributionHeatmap() {
     return { currentStreak: current, longestStreak: longest, streakSet: inStreak };
   }, [days]);
 
+  const filteredDays = useMemo(() => {
+    if (range === "year") return days;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    return days.filter((d) => d.date >= cutoffStr);
+  }, [days, range]);
+
   const weeks = useMemo(() => {
     const result: DayEntry[][] = [];
     let week: DayEntry[] = [];
-    for (const day of days) {
+    for (const day of filteredDays) {
       if (day.dow === 0 && week.length > 0) {
         result.push(week);
         week = [];
@@ -187,7 +195,7 @@ export default function ContributionHeatmap() {
     }
     if (week.length > 0) result.push(week);
     return result;
-  }, [days]);
+  }, [filteredDays]);
 
   const totalContributions = useMemo(
     () => days.reduce((sum, c) => sum + c.count, 0),
