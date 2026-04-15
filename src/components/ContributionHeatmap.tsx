@@ -13,10 +13,25 @@ interface DayStats {
   wins: number;
 }
 
+type MetricKey = "doors" | "conversations" | "leads" | "wins";
+
+const METRICS: { key: MetricKey; label: string; short: string }[] = [
+  { key: "doors", label: "Doors", short: "doors knocked" },
+  { key: "conversations", label: "Convos", short: "conversations" },
+  { key: "leads", label: "Leads", short: "leads generated" },
+  { key: "wins", label: "Wins", short: "wins closed" },
+];
+
+const METRIC_THRESHOLDS: Record<MetricKey, [number, number, number, number]> = {
+  doors: [8, 20, 35, 50],
+  conversations: [3, 8, 15, 25],
+  leads: [1, 3, 6, 10],
+  wins: [1, 2, 4, 6],
+};
+
 type DayEntry = { date: string; dow: number; count: number; stats: DayStats };
 
-/** Accepts a map of "YYYY-MM-DD" → day stats. Builds the full calendar grid. */
-function buildCalendar(data: Record<string, DayStats>): DayEntry[] {
+function buildCalendar(data: Record<string, DayStats>, metric: MetricKey): DayEntry[] {
   const today = new Date();
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate() + 1);
   const startDay = new Date(oneYearAgo);
@@ -32,14 +47,13 @@ function buildCalendar(data: Record<string, DayStats>): DayEntry[] {
     if (!seen.has(key)) {
       seen.add(key);
       const stats = data[key] ?? empty;
-      days.push({ date: key, dow: d.getDay(), count: stats.doors, stats });
+      days.push({ date: key, dow: d.getDay(), count: stats[metric], stats });
     }
     d.setDate(d.getDate() + 1);
   }
   return days;
 }
 
-/** Generate sample data for demo purposes */
 function generateSampleData(): Record<string, DayStats> {
   const data: Record<string, DayStats> = {};
   const today = new Date();
@@ -62,7 +76,6 @@ function generateSampleData(): Record<string, DayStats> {
       if (rand > 0.8) doors = Math.floor(Math.random() * 15) + 5;
     }
 
-    // Derive funnel metrics from doors
     const conversations = doors > 0 ? Math.floor(doors * (0.3 + Math.random() * 0.3)) : 0;
     const leads = conversations > 0 ? Math.floor(conversations * (0.2 + Math.random() * 0.4)) : 0;
     const appointments = leads > 0 ? Math.floor(leads * (0.3 + Math.random() * 0.4)) : 0;
@@ -74,13 +87,14 @@ function generateSampleData(): Record<string, DayStats> {
   return data;
 }
 
-function getLevel(count: number): number {
+function getLevel(count: number, metric: MetricKey): number {
   if (count === 0) return 0;
-  if (count <= 8) return 1;    // low — dark orange
-  if (count <= 20) return 2;   // medium — orange
-  if (count <= 35) return 3;   // strong — bright orange
-  if (count <= 50) return 4;   // very strong — orange-yellow
-  return 5;                    // elite — glowing yellow
+  const [t1, t2, t3, t4] = METRIC_THRESHOLDS[metric];
+  if (count <= t1) return 1;
+  if (count <= t2) return 2;
+  if (count <= t3) return 3;
+  if (count <= t4) return 4;
+  return 5;
 }
 
 function formatDate(dateStr: string): string {
@@ -91,10 +105,10 @@ function formatDate(dateStr: string): string {
 
 export default function ContributionHeatmap() {
   const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
+  const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
   useEffect(() => { setSampleData(generateSampleData()); }, []);
-  const days = useMemo(() => buildCalendar(sampleData), [sampleData]);
+  const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
 
-  // Tooltip state
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -112,29 +126,17 @@ export default function ContributionHeatmap() {
 
   const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
-  // Streak calculation
   const { currentStreak, longestStreak, streakSet } = useMemo(() => {
-    // Build set of active dates and find streaks
-    const activeDates = new Set<string>();
-    for (const day of days) {
-      if (day.count > 0) activeDates.add(day.date);
-    }
-
     let current = 0;
     let longest = 0;
     let streak = 0;
     const inStreak = new Set<string>();
 
-    // Walk backwards from today to find current streak
     for (let i = days.length - 1; i >= 0; i--) {
-      if (days[i].count > 0) {
-        current++;
-      } else {
-        break;
-      }
+      if (days[i].count > 0) current++;
+      else break;
     }
 
-    // Find longest streak and mark streak cells (3+ days)
     let runStart = -1;
     for (let i = 0; i < days.length; i++) {
       if (days[i].count > 0) {
@@ -149,7 +151,6 @@ export default function ContributionHeatmap() {
         runStart = -1;
       }
     }
-    // Handle streak at end
     if (streak >= 3) {
       for (let j = runStart; j < days.length; j++) inStreak.add(days[j].date);
     }
@@ -158,7 +159,6 @@ export default function ContributionHeatmap() {
     return { currentStreak: current, longestStreak: longest, streakSet: inStreak };
   }, [days]);
 
-  // Group into weeks (columns). Each week is Sun–Sat (7 rows).
   const weeks = useMemo(() => {
     const result: DayEntry[][] = [];
     let week: DayEntry[] = [];
@@ -178,7 +178,8 @@ export default function ContributionHeatmap() {
     [days]
   );
 
-  // Month labels: show at the first week where that month's Sunday falls
+  const metricInfo = METRICS.find((m) => m.key === activeMetric)!;
+
   const monthLabels = useMemo(() => {
     const labels: { label: string; col: number }[] = [];
     let lastMonth = -1;
@@ -203,7 +204,7 @@ export default function ContributionHeatmap() {
             {totalContributions.toLocaleString()}
           </span>
           <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
-            doors knocked this year
+            {metricInfo.short} this year
           </span>
           <span className="ml-auto flex items-center gap-4 text-sm font-mono">
             <span className="flex items-center gap-1.5">
@@ -216,15 +217,28 @@ export default function ContributionHeatmap() {
           </span>
         </div>
 
+        {/* Metric switcher */}
+        <div className="mb-3 flex gap-1">
+          {METRICS.map((m) => (
+            <button
+              key={m.key}
+              onClick={() => setActiveMetric(m.key)}
+              className={`px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none ${
+                activeMetric === m.key
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
         <div ref={containerRef} className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3 relative">
-          {/* Tooltip */}
           {tooltip && (
             <div
               className="heatmap-tooltip"
-              style={{
-                left: tooltip.x,
-                top: tooltip.y,
-              }}
+              style={{ left: tooltip.x, top: tooltip.y }}
             >
               <div className="font-mono text-[11px] font-bold mb-1.5 opacity-80">
                 {formatDate(tooltip.day.date)}
@@ -244,7 +258,6 @@ export default function ContributionHeatmap() {
             </div>
           )}
 
-          {/* Month labels row */}
           <div className="relative" style={{ height: 15, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
             {monthLabels.map((m, i) => {
               const tooClose = i > 0 && (m.col - monthLabels[i - 1].col) < 4;
@@ -262,7 +275,6 @@ export default function ContributionHeatmap() {
           </div>
 
           <div className="flex">
-            {/* Day-of-week labels */}
             <div className="flex flex-col shrink-0" style={{ width: DAY_LABEL_WIDTH, gap: GAP }}>
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label, i) => (
                 <div key={i} style={{ height: CELL }} className="flex items-center">
@@ -273,7 +285,6 @@ export default function ContributionHeatmap() {
               ))}
             </div>
 
-            {/* Grid */}
             <div className="flex" style={{ gap: GAP }}>
               {weeks.map((week, wi) => (
                 <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
@@ -285,7 +296,7 @@ export default function ContributionHeatmap() {
                     <div
                       key={di}
                       className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}`}
-                      data-level={getLevel(day.count)}
+                      data-level={getLevel(day.count, activeMetric)}
                       style={{ width: CELL, height: CELL }}
                       onMouseEnter={(e) => handleMouseEnter(e, day)}
                       onMouseLeave={handleMouseLeave}
@@ -296,7 +307,6 @@ export default function ContributionHeatmap() {
             </div>
           </div>
 
-          {/* Legend */}
           <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] font-mono text-muted-foreground">
             <span className="mr-1 font-bold">Less</span>
             {[0, 1, 2, 3, 4, 5].map((level) => (
