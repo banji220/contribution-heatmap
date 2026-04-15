@@ -1,26 +1,29 @@
 import { useMemo } from "react";
 
-const DAYS_IN_WEEK = 7;
 const WEEKS_TO_SHOW = 52;
-const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const CELL = 11;
+const GAP = 3;
 
-function generateContributions(): { date: Date; count: number }[] {
+function generateContributions() {
   const today = new Date();
-  const contributions: { date: Date; count: number }[] = [];
+  // Start from the nearest past Sunday to align weeks
+  const endDay = new Date(today);
+  const startDay = new Date(today);
+  startDay.setDate(today.getDate() - (WEEKS_TO_SHOW * 7 - 1) - today.getDay());
 
-  for (let i = WEEKS_TO_SHOW * 7 - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    // Weighted random: mostly low, occasional bursts
+  const days: { date: Date; count: number }[] = [];
+  const d = new Date(startDay);
+  while (d <= endDay) {
     const rand = Math.random();
     let count = 0;
     if (rand > 0.3) count = Math.floor(Math.random() * 4);
     if (rand > 0.7) count = Math.floor(Math.random() * 8) + 3;
     if (rand > 0.92) count = Math.floor(Math.random() * 12) + 8;
-    contributions.push({ date, count });
+    days.push({ date: new Date(d), count });
+    d.setDate(d.getDate() + 1);
   }
-  return contributions;
+  return days;
 }
 
 function getLevel(count: number): number {
@@ -32,34 +35,46 @@ function getLevel(count: number): number {
 }
 
 export default function ContributionHeatmap() {
-  const contributions = useMemo(() => generateContributions(), []);
+  const days = useMemo(() => generateContributions(), []);
 
+  // Group into weeks (columns). Each week is Sun–Sat (7 rows).
   const weeks = useMemo(() => {
-    const result: { date: Date; count: number }[][] = [];
-    for (let w = 0; w < WEEKS_TO_SHOW; w++) {
-      result.push(contributions.slice(w * DAYS_IN_WEEK, (w + 1) * DAYS_IN_WEEK));
+    const result: (typeof days)[] = [];
+    let week: (typeof days) = [];
+    for (const day of days) {
+      const dow = day.date.getDay(); // 0=Sun
+      if (dow === 0 && week.length > 0) {
+        result.push(week);
+        week = [];
+      }
+      week.push(day);
     }
+    if (week.length > 0) result.push(week);
     return result;
-  }, [contributions]);
+  }, [days]);
 
   const totalContributions = useMemo(
-    () => contributions.reduce((sum, c) => sum + c.count, 0),
-    [contributions]
+    () => days.reduce((sum, c) => sum + c.count, 0),
+    [days]
   );
 
-  // Month labels with positions
-  const monthPositions = useMemo(() => {
-    const positions: { label: string; col: number }[] = [];
+  // Month labels: show at the first week where that month's Sunday falls
+  const monthLabels = useMemo(() => {
+    const labels: { label: string; col: number }[] = [];
     let lastMonth = -1;
     weeks.forEach((week, i) => {
-      const month = week[0]?.date.getMonth();
-      if (month !== undefined && month !== lastMonth) {
-        positions.push({ label: MONTH_LABELS[month], col: i });
+      const month = week[0].date.getMonth();
+      if (month !== lastMonth) {
+        labels.push({ label: MONTH_LABELS[month], col: i });
         lastMonth = month;
       }
     });
-    return positions;
+    return labels;
   }, [weeks]);
+
+  const colWidth = CELL + GAP;
+  const gridWidth = weeks.length * colWidth - GAP;
+  const dayLabelWidth = 30;
 
   return (
     <section className="w-full px-4 py-10 sm:px-6 lg:px-8 bg-background">
@@ -70,69 +85,50 @@ export default function ContributionHeatmap() {
 
         <div className="overflow-x-auto rounded-lg border border-border bg-card p-4">
           {/* Month labels */}
-          <div className="flex" style={{ paddingLeft: 32 }}>
-            {monthPositions.map((m, i) => (
+          <div className="relative" style={{ height: 16, marginLeft: dayLabelWidth, width: gridWidth }}>
+            {monthLabels.map((m, i) => (
               <span
                 key={i}
-                className="text-xs text-muted-foreground"
-                style={{
-                  position: "relative",
-                  left: m.col * 15 - (i > 0 ? monthPositions[i - 1].col * 15 + (MONTH_LABELS[monthPositions[i - 1].label === m.label ? 0 : 0].length * 6) : 0),
-                  minWidth: 0,
-                  whiteSpace: "nowrap",
-                }}
+                className="absolute text-[10px] text-muted-foreground"
+                style={{ left: m.col * colWidth, top: 0 }}
               >
-                {/* Simplified: use absolute positioning */}
+                {m.label}
               </span>
             ))}
           </div>
 
-          <div className="flex gap-0.5">
-            {/* Day labels */}
-            <div className="flex flex-col gap-0.5 pr-2 pt-5">
-              {DAY_LABELS.map((label, i) => (
-                <div key={i} className="flex h-[13px] items-center">
-                  <span className="text-[10px] leading-none text-muted-foreground w-6 text-right">
-                    {label}
+          <div className="flex">
+            {/* Day-of-week labels: Mon, Wed, Fri */}
+            <div className="flex flex-col" style={{ width: dayLabelWidth, gap: GAP }}>
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label, i) => (
+                <div key={i} style={{ height: CELL }} className="flex items-center">
+                  <span className="text-[10px] text-muted-foreground">
+                    {i === 1 || i === 3 || i === 5 ? label : ""}
                   </span>
                 </div>
               ))}
             </div>
 
-            {/* Grid */}
-            <div>
-              {/* Month labels row */}
-              <div className="flex gap-0.5 mb-1 h-4">
-                {weeks.map((week, wi) => {
-                  const month = week[0]?.date.getMonth();
-                  const prevMonth = wi > 0 ? weeks[wi - 1][0]?.date.getMonth() : -1;
-                  const showLabel = month !== prevMonth;
-                  return (
-                    <div key={wi} className="w-[13px] flex-shrink-0">
-                      {showLabel && (
-                        <span className="text-[10px] text-muted-foreground leading-none">
-                          {MONTH_LABELS[month!]}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="flex gap-0.5">
-                {weeks.map((week, wi) => (
-                  <div key={wi} className="flex flex-col gap-0.5">
-                    {week.map((day, di) => (
-                      <div
-                        key={di}
-                        className="heatmap-cell"
-                        data-level={getLevel(day.count)}
-                        title={`${day.count} contributions on ${day.date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
-                      />
+            {/* The grid: each week is a column of 7 cells */}
+            <div className="flex" style={{ gap: GAP }}>
+              {weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
+                  {/* Pad first week if it doesn't start on Sunday */}
+                  {wi === 0 &&
+                    Array.from({ length: week[0].date.getDay() }).map((_, pi) => (
+                      <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
                     ))}
-                  </div>
-                ))}
-              </div>
+                  {week.map((day, di) => (
+                    <div
+                      key={di}
+                      className="heatmap-cell"
+                      data-level={getLevel(day.count)}
+                      style={{ width: CELL, height: CELL }}
+                      title={`${day.count} contributions on ${day.date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`}
+                    />
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -140,7 +136,7 @@ export default function ContributionHeatmap() {
           <div className="mt-3 flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground">
             <span>Less</span>
             {[0, 1, 2, 3, 4].map((level) => (
-              <div key={level} className="heatmap-cell" data-level={level} />
+              <div key={level} className="heatmap-cell" data-level={level} style={{ width: CELL, height: CELL }} />
             ))}
             <span>More</span>
           </div>
