@@ -115,6 +115,7 @@ export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, 
   }, [months]);
 
   return (
+    <>
     <div
       ref={scrollRef}
       className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-2"
