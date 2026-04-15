@@ -8,7 +8,7 @@ interface QuickLogProps {
 export default function QuickLog({ onLog, todayDoors }: QuickLogProps) {
   const [flash, setFlash] = useState(false);
   const [lastAdded, setLastAdded] = useState<number | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const quickAdd = useCallback((amount: number) => {
     onLog(amount);
