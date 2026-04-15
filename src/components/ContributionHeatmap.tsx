@@ -1,5 +1,7 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import DayDetail from "./DayDetail";
+import MobileHeatmap from "./MobileHeatmap";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CELL = 10;
