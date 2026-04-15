@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 
 interface WeeklyGoalProps {
   data: Record<string, { doors: number; conversations: number; leads: number; appointments: number; wins: number }>;
   weeklyTarget?: number;
+  onTargetChange?: (target: number) => void;
 }
 
 function getWeekDays(): string[] {
@@ -19,7 +20,26 @@ function getWeekDays(): string[] {
   return days;
 }
 
-export default function WeeklyGoal({ data, weeklyTarget = 150 }: WeeklyGoalProps) {
+export default function WeeklyGoal({ data, weeklyTarget = 150, onTargetChange }: WeeklyGoalProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(weeklyTarget));
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
+
+  const startEdit = useCallback(() => {
+    setDraft(String(weeklyTarget));
+    setEditing(true);
+  }, [weeklyTarget]);
+
+  const commitEdit = useCallback(() => {
+    const val = Math.max(1, Math.min(9999, parseInt(draft, 10) || weeklyTarget));
+    onTargetChange?.(val);
+    setEditing(false);
+  }, [draft, weeklyTarget, onTargetChange]);
+
   const { total, percent, daysLeft, paceNeeded } = useMemo(() => {
     const weekDays = getWeekDays();
     const t = weekDays.reduce((s, d) => s + (data[d]?.doors ?? 0), 0);
@@ -45,7 +65,30 @@ export default function WeeklyGoal({ data, weeklyTarget = 150 }: WeeklyGoalProps
           {/* Big number row */}
           <div className="flex items-baseline gap-2 mb-3">
             <span className="text-4xl sm:text-5xl font-bold font-mono tabular-nums">{total}</span>
-            <span className={`text-sm font-mono ${done ? "opacity-60" : "text-muted-foreground"}`}>/ {weeklyTarget} doors</span>
+            <span className={`text-sm font-mono ${done ? "opacity-60" : "text-muted-foreground"} flex items-baseline gap-1`}>
+              /
+              {editing ? (
+                <input
+                  ref={inputRef}
+                  type="number"
+                  min={1}
+                  max={9999}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onBlur={commitEdit}
+                  onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") setEditing(false); }}
+                  className="w-16 bg-transparent border-b-2 border-current text-sm font-mono font-bold tabular-nums outline-none text-inherit px-0 py-0 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+              ) : (
+                <button
+                  onClick={startEdit}
+                  className={`font-bold border-b border-dashed border-current cursor-pointer hover:opacity-70 transition-opacity ${done ? "text-background" : "text-foreground"}`}
+                >
+                  {weeklyTarget}
+                </button>
+              )}
+              {" "}doors
+            </span>
             <span className={`ml-auto text-2xl font-bold font-mono tabular-nums ${done ? "opacity-80" : ""}`}>{percent}%</span>
           </div>
 
@@ -60,7 +103,6 @@ export default function WeeklyGoal({ data, weeklyTarget = 150 }: WeeklyGoalProps
             />
           </div>
 
-          {/* Pace note */}
           {!done && daysLeft > 0 && (
             <p className={`mt-2 text-xs font-mono ${done ? "opacity-60" : "text-muted-foreground"}`}>
               Need {paceNeeded}/day to hit target
