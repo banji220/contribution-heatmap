@@ -392,6 +392,7 @@ export default function ContributionHeatmap() {
                             key={di}
                             className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
                             data-level={getLevel(day.count, activeMetric)}
+                            data-recent={getRecency(day.date)}
                             style={{ width: CELL, height: CELL, cursor: "pointer" }}
                             onMouseEnter={(e) => handleMouseEnter(e, day)}
                             onMouseLeave={handleMouseLeave}
