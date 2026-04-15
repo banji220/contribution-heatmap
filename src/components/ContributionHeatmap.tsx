@@ -111,7 +111,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
           requestAnimationFrame(() => {
             requestAnimationFrame(() => setTransitioning(false));
           });
-        }, 250);
+        }, 150);
       }
     }
   }, [isMobile, userOverride]);
@@ -128,7 +128,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setTransitioning(false));
       });
-    }, 250);
+    }, 150);
   };
 
   const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
