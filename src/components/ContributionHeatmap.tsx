@@ -84,7 +84,7 @@ function getLevel(count: number): number {
 }
 
 export default function ContributionHeatmap() {
-  const [sampleData, setSampleData] = useState<Record<string, number>>({});
+  const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   useEffect(() => { setSampleData(generateSampleData()); }, []);
   const days = useMemo(() => buildCalendar(sampleData), [sampleData]);
 
