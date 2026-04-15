@@ -107,7 +107,7 @@ function buildMonths(data: Record<string, DayStats>, metric: MetricKey, numMonth
     });
   }
 
-  return months;
+  return months.reverse();
 }
 
 interface MobileHeatmapProps {
@@ -147,7 +147,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
           <div
             key={`${month.year}-${month.month}`}
             className="shrink-0 snap-center"
-            style={{ width: gridWidth }}
+            style={{ width: gridWidth, minWidth: gridWidth }}
           >
             <div className="text-xs font-mono font-bold uppercase tracking-wider mb-2 text-center text-muted-foreground">
               {month.label}
