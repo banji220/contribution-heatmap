@@ -32,18 +32,8 @@ const METRIC_THRESHOLDS: Record<MetricKey, [number, number, number, number]> = {
   wins: [1, 2, 4, 6],
 };
 
-type DayEntry = { date: string; dow: number; count: number; stats: DayStats; recency: string };
+type DayEntry = { date: string; dow: number; count: number; stats: DayStats };
 
-const TODAY_MS = new Date().setHours(0, 0, 0, 0);
-
-function computeRecency(dateStr: string): string {
-  const [y, m, d] = dateStr.split("-");
-  const diffDays = Math.floor((TODAY_MS - new Date(Number(y), Number(m) - 1, Number(d)).getTime()) / 86400000);
-  if (diffDays <= 14) return "3";
-  if (diffDays <= 45) return "2";
-  if (diffDays <= 90) return "1";
-  return "0";
-}
 
 function buildCalendar(data: Record<string, DayStats>, metric: MetricKey): DayEntry[] {
   const today = new Date();
@@ -61,7 +51,7 @@ function buildCalendar(data: Record<string, DayStats>, metric: MetricKey): DayEn
     if (!seen.has(key)) {
       seen.add(key);
       const stats = data[key] ?? empty;
-      days.push({ date: key, dow: d.getDay(), count: stats[metric], stats, recency: computeRecency(key) });
+      days.push({ date: key, dow: d.getDay(), count: stats[metric], stats });
     }
     d.setDate(d.getDate() + 1);
   }
@@ -300,9 +290,9 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
               numMonths={range === "90d" ? 3 : 12}
               selectedDate={selectedDay?.date ?? null}
               resetDate={resetDate}
-              onDayTap={(day) => setSelectedDay((prev) => prev?.date === day.date ? null : { ...day, recency: computeRecency(day.date) })}
+              onDayTap={(day) => setSelectedDay((prev) => prev?.date === day.date ? null : day)}
               onDayLongPress={(day) => {
-                setSelectedDay({ ...day, recency: computeRecency(day.date) });
+                setSelectedDay(day);
               }}
             />
         ) : (
@@ -374,7 +364,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                             key={di}
                             className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
                             data-level={getLevel(day.count, activeMetric)}
-                            data-recent={day.recency}
+                            
                             style={{ width: cellSize, height: cellSize, cursor: "pointer", borderRadius: cellSize > 14 ? 3 : 2 }}
                             onMouseEnter={(e) => handleMouseEnter(e, day)}
                             onMouseLeave={handleMouseLeave}
