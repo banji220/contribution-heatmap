@@ -153,8 +153,6 @@
   width: 13px;
   height: 13px;
   border-radius: 2px;
-  outline: 1px solid oklch(0 0 0 / 8%);
-  outline-offset: -1px;
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
   will-change: transform;
 }
