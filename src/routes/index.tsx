@@ -8,6 +8,7 @@ import StreakPanel from "../components/StreakPanel";
 import MomentumMeter from "../components/MomentumMeter";
 import WeeklyGoal from "../components/WeeklyGoal";
 import Achievements from "../components/Achievements";
+import TrendView from "../components/TrendView";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -209,6 +210,7 @@ function Index() {
         <WeeklyInsights data={statsData} />
         <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
         <MomentumMeter data={statsData} />
+        <TrendView data={statsData} />
         <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} />
       </div>
 
