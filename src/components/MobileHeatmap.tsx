@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect, useLayoutEffect } from "react";
+import React, { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 
 interface DayStats {
   doors: number;
