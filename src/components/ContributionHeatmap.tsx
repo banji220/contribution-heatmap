@@ -96,6 +96,17 @@ function getLevel(count: number, metric: MetricKey): number {
   return 1;
 }
 
+function getRecency(dateStr: string): string {
+  const today = new Date();
+  const [y, m, d] = dateStr.split("-");
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  const diffDays = Math.floor((today.getTime() - date.getTime()) / 86400000);
+  if (diffDays <= 14) return "3";
+  if (diffDays <= 45) return "2";
+  if (diffDays <= 90) return "1";
+  return "0";
+}
+
 function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-");
   const date = new Date(Number(y), Number(m) - 1, Number(d));
@@ -381,6 +392,7 @@ export default function ContributionHeatmap() {
                             key={di}
                             className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
                             data-level={getLevel(day.count, activeMetric)}
+                            data-recent={getRecency(day.date)}
                             style={{ width: CELL, height: CELL, cursor: "pointer" }}
                             onMouseEnter={(e) => handleMouseEnter(e, day)}
                             onMouseLeave={handleMouseLeave}
