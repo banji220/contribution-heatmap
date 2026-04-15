@@ -52,19 +52,19 @@ export default function WeeklyGoal({ data, weeklyTarget = 150, onTargetChange }:
   const done = percent >= 100;
 
   return (
-    <section className="w-full px-6 sm:px-10 bg-background">
+    <section className="w-full px-4 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <div className={`border-2 border-foreground px-5 py-5 ${done ? "bg-foreground text-background" : "bg-card"}`}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold tracking-tight uppercase">Weekly Goal</h2>
+        <div className={`border-2 border-foreground px-4 py-4 sm:px-5 sm:py-5 ${done ? "bg-foreground text-background" : "bg-card"}`}>
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <h2 className="text-base sm:text-lg font-bold tracking-tight uppercase">Weekly Goal</h2>
             <span className={`text-xs font-mono font-bold uppercase tracking-wider ${done ? "opacity-80" : "text-muted-foreground"}`}>
               {done ? "✓ Complete" : `${daysLeft}d left`}
             </span>
           </div>
 
           {/* Big number row */}
-          <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-4xl sm:text-5xl font-bold font-mono tabular-nums">{total}</span>
+          <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
+            <span className="text-3xl sm:text-5xl font-bold font-mono tabular-nums">{total}</span>
             <span className={`text-sm font-mono ${done ? "opacity-60" : "text-muted-foreground"} flex items-baseline gap-1`}>
               /
               {editing ? (

@@ -167,18 +167,18 @@ function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b-4 border-foreground px-6 py-5 sm:px-10">
-        <div className="mx-auto flex max-w-5xl items-end justify-between">
+    <div className="min-h-screen bg-background pb-6">
+      <header className="border-b-4 border-foreground px-4 py-3 sm:px-10 sm:py-5">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
               KNOCK TRACKER
             </h1>
-            <p className="mt-1 text-sm font-mono text-muted-foreground uppercase tracking-widest">
+            <p className="mt-0.5 text-[10px] sm:text-sm font-mono text-muted-foreground uppercase tracking-widest">
               Every door counts
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {user ? (
               <>
                 <span className="hidden sm:block text-xs font-mono text-muted-foreground">
@@ -186,7 +186,7 @@ function Index() {
                 </span>
                 <button
                   onClick={signOut}
-                  className="border-2 border-foreground px-3 py-1 text-xs font-mono uppercase tracking-wider hover:bg-muted transition-colors"
+                  className="border-2 border-foreground px-2.5 py-1 text-[10px] sm:text-xs font-mono uppercase tracking-wider hover:bg-muted transition-colors"
                 >
                   Sign Out
                 </button>
@@ -194,7 +194,7 @@ function Index() {
             ) : (
               <Link
                 to="/login"
-                className="border-2 border-foreground px-3 py-1 text-xs font-mono uppercase tracking-wider hover:bg-muted transition-colors"
+                className="border-2 border-foreground px-2.5 py-1 text-[10px] sm:text-xs font-mono uppercase tracking-wider hover:bg-muted transition-colors"
               >
                 Sign In
               </Link>
@@ -203,7 +203,7 @@ function Index() {
         </div>
       </header>
 
-      <div className="pt-8 space-y-6">
+      <div className="pt-4 sm:pt-8 space-y-4 sm:space-y-6">
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
         <WeeklyGoal data={statsData} weeklyTarget={weeklyTarget} onTargetChange={handleWeeklyTargetChange} />
         <DailyMission doorsToday={doorsToday} target={dailyTarget} />
