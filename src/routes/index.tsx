@@ -171,36 +171,30 @@ function Index() {
     <div className="min-h-screen bg-background pb-6">
       <header className="border-b-4 border-foreground px-4 py-3 sm:px-10 sm:py-5">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
-              KNOCK TRACKER
-            </h1>
-            <p className="mt-0.5 text-[10px] sm:text-sm font-mono text-muted-foreground uppercase tracking-widest">
-              Every door counts
-            </p>
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <img src={logoImg} alt="Knock Tracker logo" className="h-8 sm:h-10 w-auto" />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
+                KNOCK TRACKER
+              </h1>
+              <p className="mt-0.5 text-[10px] sm:text-sm font-mono text-muted-foreground uppercase tracking-widest">
+                Every door counts
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            {user ? (
-              <>
-                <span className="hidden sm:block text-xs font-mono text-muted-foreground">
-                  {displayName || user.email}
-                </span>
-                <button
-                  onClick={signOut}
-                  className="border-2 border-foreground px-2.5 py-1 text-[10px] sm:text-xs font-mono uppercase tracking-wider hover:bg-muted transition-colors"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <Link
-                to="/login"
+          {user && (
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="hidden sm:block text-xs font-mono text-muted-foreground">
+                {displayName || user.email}
+              </span>
+              <button
+                onClick={signOut}
                 className="border-2 border-foreground px-2.5 py-1 text-[10px] sm:text-xs font-mono uppercase tracking-wider hover:bg-muted transition-colors"
               >
-                Sign In
-              </Link>
-            )}
-          </div>
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
