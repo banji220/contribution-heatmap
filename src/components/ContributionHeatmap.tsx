@@ -187,10 +187,10 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
   const cellSize = useMemo(() => {
     if (isMobile) return 14;
-    return 15;
+    return 18;
   }, [isMobile]);
 
-  const cellGap = GAP;
+  const cellGap = isMobile ? GAP_MOBILE : GAP_DESKTOP;
   const colWidth = cellSize + cellGap;
   const gridWidth = weeks.length * colWidth - cellGap;
 
