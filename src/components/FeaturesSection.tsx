@@ -18,9 +18,9 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="w-full px-6 py-16 sm:px-10 bg-secondary/50">
+    <section className="w-full px-4 py-12 sm:px-6 sm:py-16 md:px-10 bg-secondary/50">
       <div className="mx-auto max-w-5xl">
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl mb-2">
+        <h2 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl mb-2">
           Built for grinders
         </h2>
         <p className="text-muted-foreground mb-10 max-w-lg">

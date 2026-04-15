@@ -7,9 +7,9 @@ const stats = [
 
 export default function StatsCards() {
   return (
-    <section className="w-full px-6 py-14 sm:px-10 bg-background">
+    <section className="w-full px-4 py-10 sm:px-6 sm:py-14 md:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl mb-8">
+        <h2 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl mb-6 sm:mb-8">
           Today's numbers
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

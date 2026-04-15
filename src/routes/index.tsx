@@ -13,7 +13,7 @@ function Index() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="px-6 py-6 sm:px-10">
+      <header className="px-4 py-5 sm:px-6 sm:py-6 md:px-10">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-xl animate-bounce-soft">
