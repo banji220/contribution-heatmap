@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import logoImg from "@/assets/logo.png";
-import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from "react";
+import { useState, useCallback, useMemo, useEffect, lazy, Suspense, startTransition } from "react";
 import QuickLog from "../components/QuickLog";
 import DailyMission from "../components/DailyMission";
-import WeeklyGoal from "../components/WeeklyGoal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
+const WeeklyGoal = lazy(() => import("../components/WeeklyGoal"));
 const ContributionHeatmap = lazy(() => import("../components/ContributionHeatmap"));
 const WeeklyInsights = lazy(() => import("../components/WeeklyInsights"));
 const StreakPanel = lazy(() => import("../components/StreakPanel"));
@@ -51,6 +51,7 @@ function generateSampleData(): Record<string, DayStats> {
 function Index() {
   const { user, loading, signOut } = useAuth();
   const [statsData, setStatsData] = useState<Record<string, DayStats>>({});
+  const [dataReady, setDataReady] = useState(false);
   const [doorsToday, setDoorsToday] = useState(0);
   const [dailyTarget, setDailyTarget] = useState(30);
   const [weeklyTarget, setWeeklyTarget] = useState(150);
@@ -58,15 +59,21 @@ function Index() {
 
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  // Load data
+  // Defer data loading to after first paint
   useEffect(() => {
+    if (loading) return;
+
     if (!user) {
-      // Not logged in — show sample data
-      setStatsData(generateSampleData());
+      // Defer sample data generation so it doesn't block first paint
+      requestAnimationFrame(() => {
+        startTransition(() => {
+          setStatsData(generateSampleData());
+          setDataReady(true);
+        });
+      });
       return;
     }
 
-    // Fetch real data
     const fetchData = async () => {
       const oneYearAgo = new Date();
       oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -77,44 +84,46 @@ function Index() {
         supabase.from("profiles").select("*").maybeSingle(),
       ]);
 
-      if (statsRes.data) {
-        const mapped: Record<string, DayStats> = {};
-        for (const row of statsRes.data) {
-          mapped[row.date] = {
-            doors: row.doors,
-            conversations: row.conversations,
-            leads: row.leads,
-            appointments: row.appointments,
-            wins: row.wins,
-          };
+      startTransition(() => {
+        if (statsRes.data) {
+          const mapped: Record<string, DayStats> = {};
+          for (const row of statsRes.data) {
+            mapped[row.date] = {
+              doors: row.doors,
+              conversations: row.conversations,
+              leads: row.leads,
+              appointments: row.appointments,
+              wins: row.wins,
+            };
+          }
+          setStatsData(mapped);
+          setDoorsToday(mapped[todayKey]?.doors ?? 0);
         }
-        setStatsData(mapped);
-        setDoorsToday(mapped[todayKey]?.doors ?? 0);
-      }
 
-      if (settingsRes.data) {
-        setDailyTarget(settingsRes.data.daily_target);
-        setWeeklyTarget(settingsRes.data.weekly_target);
-      }
+        if (settingsRes.data) {
+          setDailyTarget(settingsRes.data.daily_target);
+          setWeeklyTarget(settingsRes.data.weekly_target);
+        }
 
-      if (profileRes.data) {
-        setDisplayName(profileRes.data.display_name ?? "");
-      }
+        if (profileRes.data) {
+          setDisplayName(profileRes.data.display_name ?? "");
+        }
+
+        setDataReady(true);
+      });
     };
 
     fetchData();
-  }, [user, todayKey]);
+  }, [user, loading, todayKey]);
 
   const handleLog = useCallback(async (count: number) => {
     setDoorsToday((prev) => prev + count);
-    // Update local data immediately
     setStatsData((prev) => {
       const existing = prev[todayKey] ?? { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
       return { ...prev, [todayKey]: { ...existing, doors: existing.doors + count } };
     });
 
     if (user) {
-      // Persist to database
       const { data: existing } = await supabase
         .from("daily_stats")
         .select("*")
@@ -136,8 +145,9 @@ function Index() {
     }
   }, [user]);
 
-  // Compute streaks
+  // Defer streak computation — only runs after data is ready
   const { currentStreak, longestStreak } = useMemo(() => {
+    if (!dataReady) return { currentStreak: 0, longestStreak: 0 };
     const today = new Date();
     const keys: string[] = [];
     const d = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
@@ -158,7 +168,7 @@ function Index() {
     }
     longest = Math.max(longest, run);
     return { currentStreak: current, longestStreak: longest };
-  }, [statsData]);
+  }, [statsData, dataReady]);
 
   if (loading) {
     return (
@@ -201,20 +211,24 @@ function Index() {
 
       <div className="pt-4 sm:pt-8 space-y-4 sm:space-y-6">
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
-        <WeeklyGoal data={statsData} weeklyTarget={weeklyTarget} onTargetChange={handleWeeklyTargetChange} />
         <DailyMission doorsToday={doorsToday} target={dailyTarget} />
-        <Suspense fallback={null}>
-          <WeeklyInsights data={statsData} />
-          <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
-          <MomentumMeter data={statsData} />
-          <TrendView data={statsData} />
-          <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} />
-        </Suspense>
+        {dataReady && (
+          <Suspense fallback={null}>
+            <WeeklyGoal data={statsData} weeklyTarget={weeklyTarget} onTargetChange={handleWeeklyTargetChange} />
+            <WeeklyInsights data={statsData} />
+            <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
+            <MomentumMeter data={statsData} />
+            <TrendView data={statsData} />
+            <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} />
+          </Suspense>
+        )}
       </div>
 
-      <Suspense fallback={null}>
-        <ContributionHeatmap data={statsData} />
-      </Suspense>
+      {dataReady && (
+        <Suspense fallback={null}>
+          <ContributionHeatmap data={statsData} />
+        </Suspense>
+      )}
     </div>
   );
 }
