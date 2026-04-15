@@ -78,6 +78,8 @@ function Index() {
     setDoorsToday(Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40));
   }, []);
 
+  const [weeklyTarget, setWeeklyTarget] = useState(150);
+
   const handleLog = useCallback((count: number) => {
     setDoorsToday((prev) => prev + count);
   }, []);
@@ -102,7 +104,7 @@ function Index() {
 
       <div className="pt-8 space-y-6">
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
-        <WeeklyGoal data={sampleData} weeklyTarget={150} />
+        <WeeklyGoal data={sampleData} weeklyTarget={weeklyTarget} onTargetChange={setWeeklyTarget} />
         <DailyMission doorsToday={doorsToday} target={target} />
         <WeeklyInsights data={sampleData} />
         <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
