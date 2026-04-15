@@ -98,10 +98,36 @@ export default function WeeklyInsights({ data }: WeeklyInsightsProps) {
             ))}
           </div>
 
-          {/* Mini summary */}
-          <div className="mt-3 flex gap-4 text-xs font-mono text-muted-foreground">
-            <span>{insights.totalConvos} convos</span>
-            <span>{insights.totalWins} wins</span>
+          {/* Conversion metrics */}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="bg-muted/60 px-3 py-2.5">
+              <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">
+                🗣 Convos → Leads
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-base font-bold font-mono tabular-nums">{insights.convToLeadPct}%</span>
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {insights.totalLeads}/{insights.totalConvos}
+                </span>
+              </div>
+              <div className="w-full h-1 bg-muted-foreground/15 rounded-full overflow-hidden mt-1.5">
+                <div className="h-full bg-primary/70 rounded-full transition-all" style={{ width: `${insights.convToLeadPct}%` }} />
+              </div>
+            </div>
+            <div className="bg-muted/60 px-3 py-2.5">
+              <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">
+                🎯 Leads → Wins
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-base font-bold font-mono tabular-nums">{insights.leadToWinPct}%</span>
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {insights.totalWins}/{insights.totalLeads}
+                </span>
+              </div>
+              <div className="w-full h-1 bg-muted-foreground/15 rounded-full overflow-hidden mt-1.5">
+                <div className="h-full bg-primary/70 rounded-full transition-all" style={{ width: `${insights.leadToWinPct}%` }} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
