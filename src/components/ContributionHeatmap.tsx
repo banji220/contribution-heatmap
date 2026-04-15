@@ -108,6 +108,7 @@ export default function ContributionHeatmap() {
 
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
   const [selectedDay, setSelectedDay] = useState<DayEntry | null>(null);
+  const [undoInfo, setUndoInfo] = useState<{ date: string; stats: DayStats } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -340,10 +341,27 @@ export default function ContributionHeatmap() {
               setSelectedDay((prev) => prev ? { ...prev, stats: newStats, count: newStats[activeMetric] } : null);
             }}
             onReset={(date) => {
+              const prev = sampleData[date];
+              if (prev) setUndoInfo({ date, stats: { ...prev } });
               const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-              setSampleData((prev) => ({ ...prev, [date]: empty }));
+              setSampleData((p) => ({ ...p, [date]: empty }));
             }}
           />
+        )}
+
+        {undoInfo && (
+          <div className="mt-3 flex items-center justify-between bg-muted border-2 border-foreground px-4 py-2">
+            <span className="text-xs font-mono text-muted-foreground">Day reset</span>
+            <button
+              onClick={() => {
+                setSampleData((prev) => ({ ...prev, [undoInfo.date]: undoInfo.stats }));
+                setUndoInfo(null);
+              }}
+              className="text-xs font-mono font-bold uppercase tracking-wider text-foreground hover:opacity-70 transition-opacity"
+            >
+              Undo
+            </button>
+          </div>
         )}
       </div>
     </section>
