@@ -198,8 +198,8 @@ export default function ContributionHeatmap() {
   }, [filteredDays]);
 
   const totalContributions = useMemo(
-    () => days.reduce((sum, c) => sum + c.count, 0),
-    [days]
+    () => filteredDays.reduce((sum, c) => sum + c.count, 0),
+    [filteredDays]
   );
 
   const metricInfo = METRICS.find((m) => m.key === activeMetric)!;
