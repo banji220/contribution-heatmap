@@ -196,7 +196,13 @@
   50% { box-shadow: 0 0 14px 4px var(--heatmap-5); }
 }
 
-/* Heatmap tooltip */
+/* Streak indicator — subtle underline on cells in a 3+ day streak */
+.heatmap-cell.in-streak {
+  outline: 1.5px solid var(--primary);
+  outline-offset: -1px;
+}
+
+
 .heatmap-tooltip {
   position: absolute;
   z-index: 50;
