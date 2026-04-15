@@ -104,6 +104,7 @@ function formatDate(dateStr: string): string {
 
 export default function ContributionHeatmap() {
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
   const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
   useEffect(() => { setSampleData(generateSampleData()); setMounted(true); }, []);
