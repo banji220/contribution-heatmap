@@ -161,11 +161,37 @@ export default function ContributionHeatmap() {
           </span>
         </div>
 
-        <div className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3">
+        <div ref={containerRef} className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3 relative">
+          {/* Tooltip */}
+          {tooltip && (
+            <div
+              className="heatmap-tooltip"
+              style={{
+                left: tooltip.x,
+                top: tooltip.y,
+              }}
+            >
+              <div className="font-mono text-[11px] font-bold mb-1.5 opacity-80">
+                {formatDate(tooltip.day.date)}
+              </div>
+              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
+                <span className="opacity-60">Doors</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.doors}</span>
+                <span className="opacity-60">Convos</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.conversations}</span>
+                <span className="opacity-60">Leads</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.leads}</span>
+                <span className="opacity-60">Appts</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.appointments}</span>
+                <span className="opacity-60">Wins</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.wins}</span>
+              </div>
+            </div>
+          )}
+
           {/* Month labels row */}
           <div className="relative" style={{ height: 15, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
             {monthLabels.map((m, i) => {
-              // Skip if too close to previous label
               const tooClose = i > 0 && (m.col - monthLabels[i - 1].col) < 4;
               if (tooClose) return null;
               return (
@@ -206,7 +232,8 @@ export default function ContributionHeatmap() {
                       className="heatmap-cell"
                       data-level={getLevel(day.count)}
                       style={{ width: CELL, height: CELL }}
-                      title={`${day.count} doors knocked on ${day.date}`}
+                      onMouseEnter={(e) => handleMouseEnter(e, day)}
+                      onMouseLeave={handleMouseLeave}
                     />
                   ))}
                 </div>
