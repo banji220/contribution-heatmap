@@ -1,13 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 interface DailyMissionProps {
   doorsToday: number;
   target: number;
 }
 
-function getSuggestion(doorsToday: number, target: number): string {
+function getSuggestion(doorsToday: number, target: number, hour: number): string {
   const remaining = target - doorsToday;
-  const hour = new Date().getHours();
   const percent = (doorsToday / target) * 100;
 
   if (doorsToday >= target * 1.5) return "Beast mode. You've blown past the goal.";
@@ -24,6 +23,9 @@ function getSuggestion(doorsToday: number, target: number): string {
 }
 
 export default function DailyMission({ doorsToday, target }: DailyMissionProps) {
+  const [hour, setHour] = useState(12); // safe default for SSR
+  useEffect(() => { setHour(new Date().getHours()); }, []);
+
   const { percent, status, statusLabel, emoji, suggestion } = useMemo(() => {
     const pct = Math.min(Math.round((doorsToday / target) * 100), 100);
     let s: "not_started" | "in_progress" | "done";
@@ -42,8 +44,9 @@ export default function DailyMission({ doorsToday, target }: DailyMissionProps) 
       label = "In progress";
       e = "🔥";
     }
-    return { percent: pct, status: s, statusLabel: label, emoji: e, suggestion: getSuggestion(doorsToday, target) };
-  }, [doorsToday, target]);
+    return { percent: pct, status: s, statusLabel: label, emoji: e, suggestion: getSuggestion(doorsToday, target, hour) };
+  }, [doorsToday, target, hour]);
+  
 
   return (
     <section className="w-full px-6 sm:px-10 bg-background">
