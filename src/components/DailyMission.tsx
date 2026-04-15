@@ -5,8 +5,26 @@ interface DailyMissionProps {
   target: number;
 }
 
+function getSuggestion(doorsToday: number, target: number): string {
+  const remaining = target - doorsToday;
+  const hour = new Date().getHours();
+  const percent = (doorsToday / target) * 100;
+
+  if (doorsToday >= target * 1.5) return "Beast mode. You've blown past the goal.";
+  if (doorsToday >= target) return "Mission complete. Anything extra is bonus.";
+  if (doorsToday === 0 && hour >= 14) return "Day's slipping — start now, finish strong.";
+  if (doorsToday === 0) return "Clock's ticking. First knock sets the tone.";
+  if (remaining <= 5) return `Just ${remaining} more. You're right there.`;
+  if (remaining <= 10) return `Push ${remaining} more doors to hit your goal.`;
+  if (percent >= 70) return "You're on track for a strong day.";
+  if (percent >= 40) return "Solid pace. Keep the momentum going.";
+  if (percent < 30 && hour >= 15) return "You're behind pace today. Time to lock in.";
+  if (percent < 30 && hour >= 12) return "Still early enough to catch up. Get moving.";
+  return "Good start. Stay consistent and stack the numbers.";
+}
+
 export default function DailyMission({ doorsToday, target }: DailyMissionProps) {
-  const { percent, status, statusLabel, emoji } = useMemo(() => {
+  const { percent, status, statusLabel, emoji, suggestion } = useMemo(() => {
     const pct = Math.min(Math.round((doorsToday / target) * 100), 100);
     let s: "not_started" | "in_progress" | "done";
     let label: string;
@@ -24,7 +42,7 @@ export default function DailyMission({ doorsToday, target }: DailyMissionProps) 
       label = "In progress";
       e = "🔥";
     }
-    return { percent: pct, status: s, statusLabel: label, emoji: e };
+    return { percent: pct, status: s, statusLabel: label, emoji: e, suggestion: getSuggestion(doorsToday, target) };
   }, [doorsToday, target]);
 
   return (
@@ -69,13 +87,9 @@ export default function DailyMission({ doorsToday, target }: DailyMissionProps) 
             </span>
           </div>
 
-          {/* Motivational line */}
+          {/* Smart suggestion */}
           <p className="mt-3 text-sm font-mono text-muted-foreground">
-            {status === "done"
-              ? "You crushed it today. Rest up for tomorrow."
-              : status === "in_progress"
-                ? `${target - doorsToday} more to hit your target. Keep going.`
-                : "Time to get after it. Every door counts."}
+            {suggestion}
           </p>
         </div>
       </div>
