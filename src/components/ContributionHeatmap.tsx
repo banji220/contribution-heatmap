@@ -1,14 +1,22 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CELL = 10;
 const GAP = 2;
 const DAY_LABEL_WIDTH = 28;
 
-type DayEntry = { date: string; dow: number; count: number };
+interface DayStats {
+  doors: number;
+  conversations: number;
+  leads: number;
+  appointments: number;
+  wins: number;
+}
 
-/** Accepts a map of "YYYY-MM-DD" → doors knocked. Builds the full calendar grid, 0 for missing days. */
-function buildCalendar(data: Record<string, number>): DayEntry[] {
+type DayEntry = { date: string; dow: number; count: number; stats: DayStats };
+
+/** Accepts a map of "YYYY-MM-DD" → day stats. Builds the full calendar grid. */
+function buildCalendar(data: Record<string, DayStats>): DayEntry[] {
   const today = new Date();
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate() + 1);
   const startDay = new Date(oneYearAgo);
@@ -17,21 +25,23 @@ function buildCalendar(data: Record<string, number>): DayEntry[] {
   const days: DayEntry[] = [];
   const seen = new Set<string>();
   const d = new Date(startDay);
+  const empty: DayStats = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
 
   while (d <= today) {
     const key = d.toISOString().slice(0, 10);
     if (!seen.has(key)) {
       seen.add(key);
-      days.push({ date: key, dow: d.getDay(), count: data[key] ?? 0 });
+      const stats = data[key] ?? empty;
+      days.push({ date: key, dow: d.getDay(), count: stats.doors, stats });
     }
     d.setDate(d.getDate() + 1);
   }
   return days;
 }
 
-/** Generate sample doors-knocked data for demo purposes */
-function generateSampleData(): Record<string, number> {
-  const data: Record<string, number> = {};
+/** Generate sample data for demo purposes */
+function generateSampleData(): Record<string, DayStats> {
+  const data: Record<string, DayStats> = {};
   const today = new Date();
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
   const d = new Date(oneYearAgo);
@@ -39,21 +49,26 @@ function generateSampleData(): Record<string, number> {
   while (d <= today) {
     const key = d.toISOString().slice(0, 10);
     const dayOfWeek = d.getDay();
-    // Weekdays are busier, weekends lighter
     const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
     const rand = Math.random();
 
-    let count = 0;
+    let doors = 0;
     if (isWeekday) {
-      if (rand > 0.15) count = Math.floor(Math.random() * 20) + 5;   // 5–24
-      if (rand > 0.5) count = Math.floor(Math.random() * 30) + 15;   // 15–44
-      if (rand > 0.85) count = Math.floor(Math.random() * 40) + 30;  // 30–69
+      if (rand > 0.15) doors = Math.floor(Math.random() * 20) + 5;
+      if (rand > 0.5) doors = Math.floor(Math.random() * 30) + 15;
+      if (rand > 0.85) doors = Math.floor(Math.random() * 40) + 30;
     } else {
-      if (rand > 0.5) count = Math.floor(Math.random() * 10) + 1;    // 1–10
-      if (rand > 0.8) count = Math.floor(Math.random() * 15) + 5;    // 5–19
+      if (rand > 0.5) doors = Math.floor(Math.random() * 10) + 1;
+      if (rand > 0.8) doors = Math.floor(Math.random() * 15) + 5;
     }
 
-    data[key] = count;
+    // Derive funnel metrics from doors
+    const conversations = doors > 0 ? Math.floor(doors * (0.3 + Math.random() * 0.3)) : 0;
+    const leads = conversations > 0 ? Math.floor(conversations * (0.2 + Math.random() * 0.4)) : 0;
+    const appointments = leads > 0 ? Math.floor(leads * (0.3 + Math.random() * 0.4)) : 0;
+    const wins = appointments > 0 ? Math.floor(appointments * (0.2 + Math.random() * 0.5)) : 0;
+
+    data[key] = { doors, conversations, leads, appointments, wins };
     d.setDate(d.getDate() + 1);
   }
   return data;
@@ -68,10 +83,34 @@ function getLevel(count: number): number {
   return 5;                    // elite — glowing yellow
 }
 
+function formatDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-");
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
+
 export default function ContributionHeatmap() {
-  const [sampleData, setSampleData] = useState<Record<string, number>>({});
+  const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   useEffect(() => { setSampleData(generateSampleData()); }, []);
   const days = useMemo(() => buildCalendar(sampleData), [sampleData]);
+
+  // Tooltip state
+  const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent, day: DayEntry) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if (rect) {
+      setTooltip({
+        day,
+        x: cellRect.left - rect.left + cellRect.width / 2,
+        y: cellRect.top - rect.top - 8,
+      });
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
   // Group into weeks (columns). Each week is Sun–Sat (7 rows).
   const weeks = useMemo(() => {
@@ -122,11 +161,37 @@ export default function ContributionHeatmap() {
           </span>
         </div>
 
-        <div className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3">
+        <div ref={containerRef} className="overflow-x-auto border-2 border-foreground bg-card px-4 py-3 relative">
+          {/* Tooltip */}
+          {tooltip && (
+            <div
+              className="heatmap-tooltip"
+              style={{
+                left: tooltip.x,
+                top: tooltip.y,
+              }}
+            >
+              <div className="font-mono text-[11px] font-bold mb-1.5 opacity-80">
+                {formatDate(tooltip.day.date)}
+              </div>
+              <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
+                <span className="opacity-60">Doors</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.doors}</span>
+                <span className="opacity-60">Convos</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.conversations}</span>
+                <span className="opacity-60">Leads</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.leads}</span>
+                <span className="opacity-60">Appts</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.appointments}</span>
+                <span className="opacity-60">Wins</span>
+                <span className="text-right font-bold tabular-nums">{tooltip.day.stats.wins}</span>
+              </div>
+            </div>
+          )}
+
           {/* Month labels row */}
           <div className="relative" style={{ height: 15, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
             {monthLabels.map((m, i) => {
-              // Skip if too close to previous label
               const tooClose = i > 0 && (m.col - monthLabels[i - 1].col) < 4;
               if (tooClose) return null;
               return (
@@ -167,7 +232,8 @@ export default function ContributionHeatmap() {
                       className="heatmap-cell"
                       data-level={getLevel(day.count)}
                       style={{ width: CELL, height: CELL }}
-                      title={`${day.count} doors knocked on ${day.date}`}
+                      onMouseEnter={(e) => handleMouseEnter(e, day)}
+                      onMouseLeave={handleMouseLeave}
                     />
                   ))}
                 </div>
