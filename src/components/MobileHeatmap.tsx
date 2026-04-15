@@ -67,10 +67,10 @@ function buildMonths(data: Record<string, DayStats>, metric: MetricKey, numMonth
     const days: DayEntry[] = [];
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, month, d);
-      if (date > today) break;
       const key = date.toISOString().slice(0, 10);
-      const stats = data[key] ?? empty;
-      days.push({ date: key, dow: date.getDay(), count: stats[metric], stats });
+      const isFuture = date > today;
+      const stats = isFuture ? empty : (data[key] ?? empty);
+      days.push({ date: key, dow: date.getDay(), count: isFuture ? -1 : stats[metric], stats });
     }
 
     // Group into weeks
