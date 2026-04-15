@@ -295,7 +295,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
         <div>
         {isMobile ? (
-          <div className="border-2 border-foreground bg-card px-3 py-3 relative overflow-visible">
             <MobileHeatmap
               data={mergedData}
               metric={activeMetric}
@@ -307,7 +306,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                 setSelectedDay({ ...day, recency: computeRecency(day.date) });
               }}
             />
-          </div>
         ) : (
           <div ref={containerRef} className="border-2 border-foreground bg-card relative">
             <div ref={scrollRef} className="overflow-x-auto no-scrollbar scroll-gpu overscroll-x-contain scroll-smooth snap-x snap-proximity px-4 py-3">
