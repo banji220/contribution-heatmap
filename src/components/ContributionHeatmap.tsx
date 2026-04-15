@@ -135,9 +135,71 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
     return () => ro.disconnect();
   }, []);
 
+  const { currentStreak, longestStreak, streakSet } = useMemo(() => {
+    let current = 0;
+    let longest = 0;
+    let streak = 0;
+    const inStreak = new Set<string>();
+
+    for (let i = days.length - 1; i >= 0; i--) {
+      if (days[i].count > 0) current++;
+      else break;
+    }
+
+    let runStart = -1;
+    for (let i = 0; i < days.length; i++) {
+      if (days[i].count > 0) {
+        if (runStart === -1) runStart = i;
+        streak++;
+      } else {
+        if (streak >= 3) {
+          for (let j = runStart; j < i; j++) inStreak.add(days[j].date);
+        }
+        longest = Math.max(longest, streak);
+        streak = 0;
+        runStart = -1;
+      }
+    }
+    if (streak >= 3) {
+      for (let j = runStart; j < days.length; j++) inStreak.add(days[j].date);
+    }
+    longest = Math.max(longest, streak);
+
+    return { currentStreak: current, longestStreak: longest, streakSet: inStreak };
+  }, [days]);
+
+  const filteredDays = useMemo(() => {
+    if (range === "year") return days;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    return days.filter((d) => d.date >= cutoffStr);
+  }, [days, range]);
+
+  const weeks = useMemo(() => {
+    const result: DayEntry[][] = [];
+    let week: DayEntry[] = [];
+    for (const day of filteredDays) {
+      if (day.dow === 0 && week.length > 0) {
+        result.push(week);
+        week = [];
+      }
+      week.push(day);
+    }
+    if (week.length > 0) result.push(week);
+    return result;
+  }, [filteredDays]);
+
+  const totalContributions = useMemo(
+    () => filteredDays.reduce((sum, c) => sum + c.count, 0),
+    [filteredDays]
+  );
+
+  const metricInfo = METRICS.find((m) => m.key === activeMetric)!;
+
   const cellSize = useMemo(() => {
     if (containerWidth === 0 || isMobile) return 14;
-    const padding = 32; // px-4 * 2
+    const padding = 32;
     const available = containerWidth - padding - DAY_LABEL_WIDTH;
     const numWeeks = weeks.length || 53;
     const maxCell = Math.floor((available + GAP) / numWeeks - GAP);
@@ -147,6 +209,33 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   const cellGap = GAP;
   const colWidth = cellSize + cellGap;
   const gridWidth = weeks.length * colWidth - cellGap;
+
+  const monthLabels = useMemo(() => {
+    const labels: { label: string; col: number }[] = [];
+    let lastMonth = -1;
+    weeks.forEach((week, i) => {
+      const month = parseInt(week[0].date.slice(5, 7), 10) - 1;
+      if (month !== lastMonth) {
+        labels.push({ label: MONTH_LABELS[month], col: i });
+        lastMonth = month;
+      }
+    });
+    return labels;
+  }, [weeks]);
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent, day: DayEntry) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if (rect) {
+      setTooltip({
+        day,
+        x: cellRect.left - rect.left + cellRect.width / 2,
+        y: cellRect.top - rect.top - 8,
+      });
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
 
   return (
