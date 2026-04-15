@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import DayDetail from "./DayDetail";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CELL = 10;
@@ -110,6 +111,7 @@ export default function ContributionHeatmap() {
   const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
 
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
+  const [selectedDay, setSelectedDay] = useState<DayEntry | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseEnter = useCallback((e: React.MouseEvent, day: DayEntry) => {
@@ -315,6 +317,14 @@ export default function ContributionHeatmap() {
             <span className="ml-1 font-bold">More</span>
           </div>
         </div>
+
+        {selectedDay && (
+          <DayDetail
+            date={selectedDay.date}
+            stats={selectedDay.stats}
+            onClose={() => setSelectedDay(null)}
+          />
+        )}
       </div>
     </section>
   );
