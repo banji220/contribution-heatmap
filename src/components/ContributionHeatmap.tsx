@@ -83,10 +83,34 @@ function getLevel(count: number): number {
   return 5;                    // elite — glowing yellow
 }
 
+function formatDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-");
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
+
 export default function ContributionHeatmap() {
   const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   useEffect(() => { setSampleData(generateSampleData()); }, []);
   const days = useMemo(() => buildCalendar(sampleData), [sampleData]);
+
+  // Tooltip state
+  const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent, day: DayEntry) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    if (rect) {
+      setTooltip({
+        day,
+        x: cellRect.left - rect.left + cellRect.width / 2,
+        y: cellRect.top - rect.top - 8,
+      });
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
   // Group into weeks (columns). Each week is Sun–Sat (7 rows).
   const weeks = useMemo(() => {
