@@ -112,6 +112,7 @@ export default function ContributionHeatmap() {
   const [resetDate, setResetDate] = useState<string | null>(null);
   const [longPressDay, setLongPressDay] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLongPress = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -308,7 +309,6 @@ export default function ContributionHeatmap() {
                         <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
                       ))}
                     {week.map((day, di) => {
-                      const didLongPress = useRef(false);
                       return (
                         <div
                           key={di}
