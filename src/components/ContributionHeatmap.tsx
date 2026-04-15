@@ -341,8 +341,10 @@ export default function ContributionHeatmap() {
               setSelectedDay((prev) => prev ? { ...prev, stats: newStats, count: newStats[activeMetric] } : null);
             }}
             onReset={(date) => {
+              const prev = sampleData[date];
+              if (prev) setUndoInfo({ date, stats: { ...prev } });
               const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-              setSampleData((prev) => ({ ...prev, [date]: empty }));
+              setSampleData((p) => ({ ...p, [date]: empty }));
             }}
           />
         )}
