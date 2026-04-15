@@ -99,14 +99,27 @@ interface MobileHeatmapProps {
 }
 
 export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, selectedDate, resetDate }: MobileHeatmapProps) {
-  const months = useMemo(() => buildMonths(data, metric, 3), [data, metric]);
+  const months = useMemo(() => buildMonths(data, metric, 6), [data, metric]);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const gridWidth = 7 * CELL_SIZE + 6 * GAP;
+  const monthWidth = gridWidth + 24; // grid + padding
+
+  // Auto-scroll to the end (most recent month)
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [months]);
 
   return (
-    <div className="space-y-4">
+    <div
+      ref={scrollRef}
+      className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-2"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       {months.map((month) => (
         <div key={`${month.year}-${month.month}`}>
           <div className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-2">
