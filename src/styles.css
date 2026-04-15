@@ -196,11 +196,7 @@
   50% { box-shadow: 0 0 2px 0 oklch(0.5 0.2 28 / 18%); }
 }
 
-/* Streak indicator — subtle underline on cells in a 3+ day streak */
-.heatmap-cell.in-streak {
-  outline: 1.5px solid var(--primary);
-  outline-offset: -1px;
-}
+/* Streak indicator — no outline, just keep tracking internally */
 
 /* Legend cells: no glow or animation */
 .heatmap-legend {
