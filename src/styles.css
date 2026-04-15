@@ -216,6 +216,23 @@
   to { opacity: 1; transform: translate(-50%, -100%) scale(1); }
 }
 
+@keyframes achievement-in {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes achievement-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+@keyframes achievement-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.animate-achievement-in { animation: achievement-in 0.3s ease-out; }
+.animate-achievement-bounce { animation: achievement-bounce 0.4s ease-in-out 0.15s; }
+.animate-achievement-pop { animation: achievement-pop 0.35s ease-out; }
+
 @layer base {
   * {
     border-color: var(--color-border);

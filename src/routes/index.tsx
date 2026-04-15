@@ -7,6 +7,7 @@ import WeeklyInsights from "../components/WeeklyInsights";
 import StreakPanel from "../components/StreakPanel";
 import MomentumMeter from "../components/MomentumMeter";
 import WeeklyGoal from "../components/WeeklyGoal";
+import Achievements from "../components/Achievements";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -68,13 +69,14 @@ function Index() {
     return { currentStreak: current, longestStreak: longest };
   }, [sampleData]);
 
-  const initialDoors = useMemo(() => {
-    const hour = new Date().getHours();
-    return Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40);
-  }, []);
-
-  const [doorsToday, setDoorsToday] = useState(initialDoors);
+  const [doorsToday, setDoorsToday] = useState(0);
   const target = 30;
+
+  // Set initial doors client-side to avoid hydration mismatch
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setDoorsToday(Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40));
+  }, []);
 
   const handleLog = useCallback((count: number) => {
     setDoorsToday((prev) => prev + count);
@@ -105,6 +107,7 @@ function Index() {
         <WeeklyInsights data={sampleData} />
         <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
         <MomentumMeter data={sampleData} />
+        <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={sampleData} />
       </div>
 
       <ContributionHeatmap />
