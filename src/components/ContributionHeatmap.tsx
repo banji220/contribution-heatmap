@@ -295,7 +295,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
         <div>
         {isMobile ? (
-          <div className="border-2 border-foreground bg-card px-3 py-3 relative">
+          <div className="border-2 border-foreground bg-card px-3 py-3 relative overflow-visible">
             <MobileHeatmap
               data={mergedData}
               metric={activeMetric}

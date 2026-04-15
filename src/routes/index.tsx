@@ -217,12 +217,12 @@ function Index() {
         <DailyMission doorsToday={doorsToday} target={dailyTarget} />
         {dataReady && (
           <Suspense fallback={null}>
-            <div className="content-defer"><WeeklyGoal data={statsData} weeklyTarget={weeklyTarget} onTargetChange={handleWeeklyTargetChange} /></div>
-            <div className="content-defer"><WeeklyInsights data={statsData} /></div>
-            <div className="content-defer"><StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} /></div>
-            <div className="content-defer"><MomentumMeter data={statsData} /></div>
-            <div className="content-defer"><TrendView data={statsData} /></div>
-            <div className="content-defer"><Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} /></div>
+            <WeeklyGoal data={statsData} weeklyTarget={weeklyTarget} onTargetChange={handleWeeklyTargetChange} />
+            <WeeklyInsights data={statsData} />
+            <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
+            <MomentumMeter data={statsData} />
+            <TrendView data={statsData} />
+            <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} />
           </Suspense>
         )}
       </div>
