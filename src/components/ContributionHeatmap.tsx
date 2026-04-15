@@ -284,7 +284,7 @@ export default function ContributionHeatmap() {
                   {week.map((day, di) => (
                     <div
                       key={di}
-                      className="heatmap-cell"
+                      className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}`}
                       data-level={getLevel(day.count)}
                       style={{ width: CELL, height: CELL }}
                       onMouseEnter={(e) => handleMouseEnter(e, day)}
