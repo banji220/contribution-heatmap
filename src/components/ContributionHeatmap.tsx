@@ -240,7 +240,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
   return (
     <section className="w-full px-4 py-6 sm:px-10 sm:py-10 bg-background">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         {/* Header row — stacked on mobile */}
         <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
           <div className="flex items-baseline gap-2 flex-wrap">
