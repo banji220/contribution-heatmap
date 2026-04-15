@@ -119,8 +119,37 @@ export default function ContributionHeatmap() {
   const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
   const [range, setRange] = useState<"90d" | "year">("year");
+  const [userOverride, setUserOverride] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   useEffect(() => { setSampleData(generateSampleData()); setMounted(true); }, []);
-  useEffect(() => { setRange(isMobile ? "90d" : "year"); }, [isMobile]);
+
+  // Auto-switch based on screen size, but respect manual override
+  useEffect(() => {
+    if (!userOverride) {
+      const newRange = isMobile ? "90d" : "year";
+      if (newRange !== range) {
+        setTransitioning(true);
+        setTimeout(() => {
+          setRange(newRange);
+          setTimeout(() => setTransitioning(false), 50);
+        }, 150);
+      }
+    }
+  }, [isMobile, userOverride]);
+
+  // Reset override when screen size changes significantly
+  useEffect(() => { setUserOverride(false); }, [isMobile]);
+
+  const handleRangeChange = (newRange: "90d" | "year") => {
+    if (newRange === range) return;
+    setUserOverride(true);
+    setTransitioning(true);
+    setTimeout(() => {
+      setRange(newRange);
+      setTimeout(() => setTransitioning(false), 50);
+    }, 150);
+  };
+
   const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
 
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
@@ -289,7 +318,7 @@ export default function ContributionHeatmap() {
             {([["90d", "90d"], ["year", "1y"]] as const).map(([val, label]) => (
               <button
                 key={val}
-                onClick={() => setRange(val)}
+                onClick={() => handleRangeChange(val)}
                 className={`px-2 py-1 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none ${
                   range === val
                     ? "bg-foreground text-background"
