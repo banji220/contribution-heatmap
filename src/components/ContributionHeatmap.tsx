@@ -198,13 +198,9 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   const metricInfo = METRICS.find((m) => m.key === activeMetric)!;
 
   const cellSize = useMemo(() => {
-    if (containerWidth === 0 || isMobile) return 14;
-    const padding = 32;
-    const available = containerWidth - padding - DAY_LABEL_WIDTH;
-    const numWeeks = weeks.length || 53;
-    const maxCell = Math.floor((available + GAP) / numWeeks - GAP);
-    return Math.max(11, Math.min(maxCell, 24));
-  }, [containerWidth, weeks.length, isMobile]);
+    if (isMobile) return 14;
+    return 15;
+  }, [isMobile]);
 
   const cellGap = GAP;
   const colWidth = cellSize + cellGap;
