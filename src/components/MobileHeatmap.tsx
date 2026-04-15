@@ -130,17 +130,30 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
   };
 
   useLayoutEffect(() => {
-    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
 
     if (!hasScrolled.current) {
-      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
-      savedScroll.current = scrollRef.current.scrollLeft;
+      // Initial mount: jump to end (current month) without smooth scroll
+      el.style.scrollBehavior = "auto";
+      el.scrollLeft = el.scrollWidth;
+      savedScroll.current = el.scrollLeft;
       hasScrolled.current = true;
+      // Restore smooth after a frame
+      requestAnimationFrame(() => { el.style.scrollBehavior = ""; });
       return;
     }
 
     if (savedScroll.current !== null) {
-      scrollRef.current.scrollLeft = savedScroll.current;
+      // Restore position without smooth scroll or snap interference
+      el.style.scrollBehavior = "auto";
+      el.style.scrollSnapType = "none";
+      el.scrollLeft = savedScroll.current;
+      // Re-enable snap after position is set
+      requestAnimationFrame(() => {
+        el.style.scrollBehavior = "";
+        el.style.scrollSnapType = "";
+      });
     }
   }, [months]);
 
@@ -149,7 +162,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
     <div
       ref={scrollRef}
       onScroll={handleScroll}
-      className="flex gap-4 overflow-x-auto no-scrollbar scroll-gpu snap-x snap-mandatory scroll-smooth pb-2"
+      className="flex gap-4 overflow-x-auto no-scrollbar scroll-gpu snap-x snap-mandatory pb-2"
       style={{ touchAction: "pan-x" }}
     >
       {months.map((month) => (
