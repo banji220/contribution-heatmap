@@ -333,25 +333,36 @@ export default function ContributionHeatmap() {
                 </div>
 
                 <div className="flex" style={{ gap: GAP }}>
-                  {weeks.map((week, wi) => (
-                    <div key={wi} className="flex flex-col snap-start" style={{ gap: GAP }}>
-                      {wi === 0 &&
-                        Array.from({ length: week[0].dow }).map((_, pi) => (
-                          <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
+                  {weeks.map((week, wi) => {
+                    const isCurrentWeek = week.some((d) => {
+                      const now = new Date();
+                      const key = now.toISOString().slice(0, 10);
+                      return d.date === key;
+                    });
+                    return (
+                      <div
+                        key={wi}
+                        className={`flex flex-col snap-start${isCurrentWeek ? " bg-foreground/5 -my-1 py-1 rounded-sm" : ""}`}
+                        style={{ gap: GAP }}
+                      >
+                        {wi === 0 &&
+                          Array.from({ length: week[0].dow }).map((_, pi) => (
+                            <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
+                          ))}
+                        {week.map((day, di) => (
+                          <div
+                            key={di}
+                            className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
+                            data-level={getLevel(day.count, activeMetric)}
+                            style={{ width: CELL, height: CELL, cursor: "pointer" }}
+                            onMouseEnter={(e) => handleMouseEnter(e, day)}
+                            onMouseLeave={handleMouseLeave}
+                            onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
+                          />
                         ))}
-                      {week.map((day, di) => (
-                        <div
-                          key={di}
-                          className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
-                          data-level={getLevel(day.count, activeMetric)}
-                          style={{ width: CELL, height: CELL, cursor: "pointer" }}
-                          onMouseEnter={(e) => handleMouseEnter(e, day)}
-                          onMouseLeave={handleMouseLeave}
-                          onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
-                        />
-                      ))}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
