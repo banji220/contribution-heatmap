@@ -131,8 +131,10 @@ export default function ContributionHeatmap() {
         setTransitioning(true);
         setTimeout(() => {
           setRange(newRange);
-          setTimeout(() => setTransitioning(false), 50);
-        }, 150);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => setTransitioning(false));
+          });
+        }, 250);
       }
     }
   }, [isMobile, userOverride]);
@@ -146,8 +148,10 @@ export default function ContributionHeatmap() {
     setTransitioning(true);
     setTimeout(() => {
       setRange(newRange);
-      setTimeout(() => setTransitioning(false), 50);
-    }, 150);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setTransitioning(false));
+      });
+    }, 250);
   };
 
   const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
@@ -331,7 +335,14 @@ export default function ContributionHeatmap() {
           </div>
         </div>
 
-        <div className="transition-opacity duration-200 ease-in-out" style={{ opacity: transitioning ? 0 : 1 }}>
+        <div
+          className="transition-all duration-300 ease-in-out"
+          style={{
+            opacity: transitioning ? 0 : 1,
+            transform: transitioning ? "scale(0.97)" : "scale(1)",
+            filter: transitioning ? "blur(4px)" : "blur(0px)",
+          }}
+        >
         {isMobile ? (
           <div className="border-2 border-foreground bg-card px-3 py-3 relative">
             <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
