@@ -205,6 +205,11 @@
   outline-offset: -1px;
 }
 
+/* Legend cells: no glow or animation */
+.heatmap-legend {
+  box-shadow: none !important;
+  animation: none !important;
+}
 
 .heatmap-tooltip {
   position: absolute;
