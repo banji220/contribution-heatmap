@@ -1,11 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import ContributionHeatmap from "../components/ContributionHeatmap";
+import DailyMission from "../components/DailyMission";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
+  // Simulate today's progress — in production, pull from real data
+  const { doorsToday, target } = useMemo(() => {
+    const hour = new Date().getHours();
+    const simulated = Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40);
+    return { doorsToday: simulated, target: 30 };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Bold header strip */}
@@ -25,7 +34,12 @@ function Index() {
         </div>
       </header>
 
-      {/* Heatmap section — untouched grid */}
+      {/* Daily Mission */}
+      <div className="pt-8">
+        <DailyMission doorsToday={doorsToday} target={target} />
+      </div>
+
+      {/* Heatmap section */}
       <ContributionHeatmap />
     </div>
   );
