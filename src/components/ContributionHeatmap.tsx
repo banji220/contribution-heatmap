@@ -222,64 +222,61 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
 
   return (
-    <section className="w-full px-4 py-6 sm:px-10 sm:py-10 bg-background">
+    <section className="w-full px-4 py-6 sm:px-6 sm:py-8 bg-background">
       <div className="mx-auto w-fit max-w-full">
-        {/* Header row — stacked on mobile */}
-        <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight">
-              {totalContributions.toLocaleString()}
-            </span>
-            <span className="text-xs sm:text-sm font-mono text-muted-foreground uppercase tracking-wider">
-              {metricInfo.short} {range === "90d" ? "last 90 days" : "this year"}
-            </span>
-          </div>
-          <span className="sm:ml-auto flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block w-2 h-2 rounded-full bg-primary" />
-              <span className="text-muted-foreground">{currentStreak}d streak</span>
-            </span>
-            <span className="text-muted-foreground opacity-60">
-              best {longestStreak}d
-            </span>
-          </span>
-        </div>
-
-        {/* Metric switcher + range toggle */}
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex gap-1 overflow-x-auto no-scrollbar flex-1">
-            {METRICS.map((m) => (
-              <button
-                key={m.key}
-                onClick={() => setActiveMetric(m.key)}
-                className={`px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none whitespace-nowrap ${
-                  activeMetric === m.key
-                    ? "bg-foreground text-background"
-                    : "bg-muted text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-0.5 shrink-0">
-            {([["90d", "90d"], ["year", "1y"]] as const).map(([val, label]) => (
-              <button
-                key={val}
-                onClick={() => handleRangeChange(val)}
-                className={`px-2 py-1 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none ${
-                  range === val
-                    ? "bg-foreground text-background"
-                    : "bg-muted text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {isMobile ? (
+          <>
+            {/* Header row — stacked on mobile */}
+            <div className="mb-3 flex flex-col gap-1">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-3xl font-bold tabular-nums tracking-tight">
+                  {totalContributions.toLocaleString()}
+                </span>
+                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
+                  {metricInfo.short} {range === "90d" ? "last 90 days" : "this year"}
+                </span>
+              </div>
+              <span className="flex items-center gap-3 text-xs font-mono">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-2 h-2 rounded-full bg-primary" />
+                  <span className="text-muted-foreground">{currentStreak}d streak</span>
+                </span>
+                <span className="text-muted-foreground opacity-60">best {longestStreak}d</span>
+              </span>
+            </div>
+            {/* Metric switcher + range toggle */}
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex gap-1 overflow-x-auto no-scrollbar flex-1">
+                {METRICS.map((m) => (
+                  <button
+                    key={m.key}
+                    onClick={() => setActiveMetric(m.key)}
+                    className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors select-none whitespace-nowrap ${
+                      activeMetric === m.key
+                        ? "bg-foreground text-background"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-0.5 shrink-0">
+                {([["90d", "90d"], ["year", "1y"]] as const).map(([val, label]) => (
+                  <button
+                    key={val}
+                    onClick={() => handleRangeChange(val)}
+                    className={`px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors select-none ${
+                      range === val
+                        ? "bg-foreground text-background"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <MobileHeatmap
               data={mergedData}
               metric={activeMetric}
@@ -291,9 +288,62 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                 setSelectedDay(day);
               }}
             />
+          </>
         ) : (
           <div ref={containerRef} className="border-2 border-foreground bg-card relative">
-            <div ref={scrollRef} className="overflow-x-auto no-scrollbar scroll-gpu overscroll-x-contain scroll-smooth snap-x snap-proximity px-4 py-3">
+            <div ref={scrollRef} className="overflow-x-auto no-scrollbar scroll-gpu overscroll-x-contain scroll-smooth snap-x snap-proximity px-4 pt-4 pb-3">
+              {/* Header inside the box */}
+              <div className="mb-3 flex items-baseline gap-3">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-3xl sm:text-4xl font-bold tabular-nums tracking-tight">
+                    {totalContributions.toLocaleString()}
+                  </span>
+                  <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+                    {metricInfo.short} {range === "90d" ? "last 90 days" : "this year"}
+                  </span>
+                </div>
+                <span className="ml-auto flex items-center gap-4 text-sm font-mono">
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-primary" />
+                    <span className="text-muted-foreground">{currentStreak}d streak</span>
+                  </span>
+                  <span className="text-muted-foreground opacity-60">best {longestStreak}d</span>
+                </span>
+              </div>
+
+              {/* Metric switcher + range toggle */}
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex gap-1 flex-1">
+                  {METRICS.map((m) => (
+                    <button
+                      key={m.key}
+                      onClick={() => setActiveMetric(m.key)}
+                      className={`px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none whitespace-nowrap ${
+                        activeMetric === m.key
+                          ? "bg-foreground text-background"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-0.5 shrink-0">
+                  {([["90d", "90d"], ["year", "1y"]] as const).map(([val, label]) => (
+                    <button
+                      key={val}
+                      onClick={() => handleRangeChange(val)}
+                      className={`px-2 py-1 text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none ${
+                        range === val
+                          ? "bg-foreground text-background"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               {tooltip && (
                 <div
                   className="heatmap-tooltip"
