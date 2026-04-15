@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import logoImg from "@/assets/logo.png";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import ContributionHeatmap from "../components/ContributionHeatmap";
 import DailyMission from "../components/DailyMission";
