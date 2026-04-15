@@ -4,7 +4,8 @@ import MobileHeatmap from "./MobileHeatmap";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const GAP = 3;
+const GAP_MOBILE = 3;
+const GAP_DESKTOP = 4;
 const DAY_LABEL_WIDTH = 28;
 
 interface DayStats {
