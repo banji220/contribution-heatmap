@@ -154,7 +154,7 @@
   height: 13px;
   border-radius: 2px;
   transition: background-color 0.2s ease;
-  opacity: 0.55;
+  
   contain: layout style;
 }
 .heatmap-cell.just-reset {
@@ -175,6 +175,7 @@
 /* Level 0: dim gray — visible but clearly inactive */
 .heatmap-cell[data-level="0"] {
   background-color: var(--heatmap-0);
+  opacity: 0.55;
 }
 /* Level 1: hint of warmth */
 .heatmap-cell[data-level="1"] { background-color: var(--heatmap-1); }
