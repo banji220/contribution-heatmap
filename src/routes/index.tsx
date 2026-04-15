@@ -1,23 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import ContributionHeatmap from "../components/ContributionHeatmap";
 import DailyMission from "../components/DailyMission";
+import QuickLog from "../components/QuickLog";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
-  // Simulate today's progress — in production, pull from real data
-  const { doorsToday, target } = useMemo(() => {
+  const initialDoors = useMemo(() => {
     const hour = new Date().getHours();
-    const simulated = Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40);
-    return { doorsToday: simulated, target: 30 };
+    return Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40);
+  }, []);
+
+  const [doorsToday, setDoorsToday] = useState(initialDoors);
+  const target = 30;
+
+  const handleLog = useCallback((count: number) => {
+    setDoorsToday((prev) => prev + count);
   }, []);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Bold header strip */}
       <header className="border-b-4 border-foreground px-6 py-5 sm:px-10">
         <div className="mx-auto flex max-w-5xl items-end justify-between">
           <div>
@@ -34,12 +39,11 @@ function Index() {
         </div>
       </header>
 
-      {/* Daily Mission */}
-      <div className="pt-8">
+      <div className="pt-8 space-y-6">
+        <QuickLog onLog={handleLog} todayDoors={doorsToday} />
         <DailyMission doorsToday={doorsToday} target={target} />
       </div>
 
-      {/* Heatmap section */}
       <ContributionHeatmap />
     </div>
   );
