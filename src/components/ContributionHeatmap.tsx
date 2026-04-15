@@ -110,6 +110,9 @@ export default function ContributionHeatmap() {
   const [selectedDay, setSelectedDay] = useState<DayEntry | null>(null);
   const [undoInfo, setUndoInfo] = useState<{ date: string; stats: DayStats } | null>(null);
   const [resetDate, setResetDate] = useState<string | null>(null);
+  const [longPressDay, setLongPressDay] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLongPress = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -305,17 +308,51 @@ export default function ContributionHeatmap() {
                       Array.from({ length: week[0].dow }).map((_, pi) => (
                         <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
                       ))}
-                    {week.map((day, di) => (
-                      <div
-                        key={di}
-                        className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
-                        data-level={getLevel(day.count, activeMetric)}
-                        style={{ width: CELL, height: CELL, cursor: "pointer" }}
-                        onMouseEnter={(e) => handleMouseEnter(e, day)}
-                        onMouseLeave={handleMouseLeave}
-                        onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
-                      />
-                    ))}
+                    {week.map((day, di) => {
+                      return (
+                        <div
+                          key={di}
+                          className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
+                          data-level={getLevel(day.count, activeMetric)}
+                          style={{ width: CELL, height: CELL, cursor: "pointer" }}
+                          onMouseEnter={(e) => handleMouseEnter(e, day)}
+                          onMouseLeave={handleMouseLeave}
+                          onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
+                          onTouchStart={(e) => {
+                            didLongPress.current = false;
+                            const target = e.currentTarget;
+                            longPressTimer.current = setTimeout(() => {
+                              didLongPress.current = true;
+                              longPressTimer.current = null;
+                              const rect = containerRef.current?.getBoundingClientRect();
+                              const cellRect = target.getBoundingClientRect();
+                              if (rect) {
+                                setLongPressDay({
+                                  day,
+                                  x: cellRect.left - rect.left + cellRect.width / 2,
+                                  y: cellRect.top - rect.top + cellRect.height + 4,
+                                });
+                              }
+                            }, 400);
+                          }}
+                          onTouchEnd={(e) => {
+                            if (longPressTimer.current) {
+                              clearTimeout(longPressTimer.current);
+                              longPressTimer.current = null;
+                            }
+                            if (didLongPress.current) {
+                              e.preventDefault();
+                            }
+                          }}
+                          onTouchMove={() => {
+                            if (longPressTimer.current) {
+                              clearTimeout(longPressTimer.current);
+                              longPressTimer.current = null;
+                            }
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 ))}
               </div>
@@ -328,6 +365,43 @@ export default function ContributionHeatmap() {
               ))}
               <span className="ml-1 font-bold">More</span>
             </div>
+
+            {longPressDay && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setLongPressDay(null)} onTouchStart={() => setLongPressDay(null)} />
+                <div
+                  className="absolute z-50 bg-card border-2 border-foreground shadow-lg flex flex-col min-w-[120px] animate-in fade-in zoom-in-95 duration-150"
+                  style={{ left: Math.max(8, longPressDay.x - 60), top: longPressDay.y }}
+                >
+                  <button
+                    className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left hover:bg-muted transition-colors"
+                    onClick={() => {
+                      const day = longPressDay.day;
+                      setLongPressDay(null);
+                      setSelectedDay(day);
+                    }}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <div className="border-t border-foreground/10" />
+                  <button
+                    className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left text-destructive hover:bg-destructive/10 transition-colors"
+                    onClick={() => {
+                      const date = longPressDay.day.date;
+                      const prev = sampleData[date];
+                      if (prev) setUndoInfo({ date, stats: { ...prev } });
+                      const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
+                      setSampleData((p) => ({ ...p, [date]: empty }));
+                      setResetDate(date);
+                      setTimeout(() => setResetDate(null), 600);
+                      setLongPressDay(null);
+                    }}
+                  >
+                    🗑 Reset
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
