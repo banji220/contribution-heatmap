@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect, useLayoutEffect } from "react";
+import React, { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 
 interface DayStats {
   doors: number;
@@ -118,50 +118,55 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
 
   const gridWidth = 7 * CELL_SIZE + 6 * GAP;
   const monthWidth = gridWidth + 24; // grid + padding
+  const lastMonthIndex = Math.max(0, months.length - 1);
 
-  // Preserve the currently viewed month/scroll position across data updates
+  const [activeMonthIndex, setActiveMonthIndex] = useState(lastMonthIndex);
   const savedScroll = useRef<number | null>(null);
-  const hasScrolled = useRef(false);
+  const hasInitialized = useRef(false);
 
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      savedScroll.current = scrollRef.current.scrollLeft;
-    }
-  };
+  useEffect(() => {
+    setActiveMonthIndex((prev) => Math.min(prev, lastMonthIndex));
+  }, [lastMonthIndex]);
+
+  const syncActiveMonth = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const center = el.scrollLeft + el.clientWidth / 2;
+    const index = Math.round(center / (gridWidth + 16) - 0.5);
+    const clampedIndex = Math.max(0, Math.min(index, lastMonthIndex));
+    setActiveMonthIndex(clampedIndex);
+    savedScroll.current = el.scrollLeft;
+  }, [gridWidth, lastMonthIndex]);
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    if (!hasScrolled.current) {
-      // Initial mount: jump to end (current month) without smooth scroll
-      el.style.scrollBehavior = "auto";
+    el.style.scrollBehavior = "auto";
+    el.style.scrollSnapType = "none";
+
+    if (!hasInitialized.current) {
       el.scrollLeft = el.scrollWidth;
       savedScroll.current = el.scrollLeft;
-      hasScrolled.current = true;
-      // Restore smooth after a frame
-      requestAnimationFrame(() => { el.style.scrollBehavior = ""; });
-      return;
+      setActiveMonthIndex(lastMonthIndex);
+      hasInitialized.current = true;
+    } else if (savedScroll.current !== null) {
+      el.scrollLeft = savedScroll.current;
     }
 
-    if (savedScroll.current !== null) {
-      // Restore position without smooth scroll or snap interference
-      el.style.scrollBehavior = "auto";
-      el.style.scrollSnapType = "none";
-      el.scrollLeft = savedScroll.current;
-      // Re-enable snap after position is set
-      requestAnimationFrame(() => {
-        el.style.scrollBehavior = "";
-        el.style.scrollSnapType = "";
-      });
-    }
-  }, [months]);
+    requestAnimationFrame(() => {
+      el.style.scrollBehavior = "";
+      el.style.scrollSnapType = "";
+      syncActiveMonth();
+    });
+  }, [months, lastMonthIndex, syncActiveMonth]);
 
   return (
     <>
     <div
       ref={scrollRef}
-      onScroll={handleScroll}
+      onScroll={syncActiveMonth}
       className="flex gap-4 overflow-x-auto no-scrollbar scroll-gpu snap-x snap-mandatory pb-2"
       style={{ touchAction: "pan-x" }}
     >
