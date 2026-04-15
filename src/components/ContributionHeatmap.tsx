@@ -112,6 +112,52 @@ export default function ContributionHeatmap() {
 
   const handleMouseLeave = useCallback(() => setTooltip(null), []);
 
+  // Streak calculation
+  const { currentStreak, longestStreak, streakSet } = useMemo(() => {
+    // Build set of active dates and find streaks
+    const activeDates = new Set<string>();
+    for (const day of days) {
+      if (day.count > 0) activeDates.add(day.date);
+    }
+
+    let current = 0;
+    let longest = 0;
+    let streak = 0;
+    const inStreak = new Set<string>();
+
+    // Walk backwards from today to find current streak
+    for (let i = days.length - 1; i >= 0; i--) {
+      if (days[i].count > 0) {
+        current++;
+      } else {
+        break;
+      }
+    }
+
+    // Find longest streak and mark streak cells (3+ days)
+    let runStart = -1;
+    for (let i = 0; i < days.length; i++) {
+      if (days[i].count > 0) {
+        if (runStart === -1) runStart = i;
+        streak++;
+      } else {
+        if (streak >= 3) {
+          for (let j = runStart; j < i; j++) inStreak.add(days[j].date);
+        }
+        longest = Math.max(longest, streak);
+        streak = 0;
+        runStart = -1;
+      }
+    }
+    // Handle streak at end
+    if (streak >= 3) {
+      for (let j = runStart; j < days.length; j++) inStreak.add(days[j].date);
+    }
+    longest = Math.max(longest, streak);
+
+    return { currentStreak: current, longestStreak: longest, streakSet: inStreak };
+  }, [days]);
+
   // Group into weeks (columns). Each week is Sun–Sat (7 rows).
   const weeks = useMemo(() => {
     const result: DayEntry[][] = [];
@@ -152,12 +198,21 @@ export default function ContributionHeatmap() {
   return (
     <section className="w-full px-6 py-10 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-4 flex items-baseline gap-3">
+        <div className="mb-4 flex items-baseline gap-3 flex-wrap">
           <span className="text-4xl font-bold tabular-nums tracking-tight">
             {totalContributions.toLocaleString()}
           </span>
           <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
             doors knocked this year
+          </span>
+          <span className="ml-auto flex items-center gap-4 text-sm font-mono">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-muted-foreground">{currentStreak}d streak</span>
+            </span>
+            <span className="text-muted-foreground opacity-60">
+              best {longestStreak}d
+            </span>
           </span>
         </div>
 
@@ -229,7 +284,7 @@ export default function ContributionHeatmap() {
                   {week.map((day, di) => (
                     <div
                       key={di}
-                      className="heatmap-cell"
+                      className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}`}
                       data-level={getLevel(day.count)}
                       style={{ width: CELL, height: CELL }}
                       onMouseEnter={(e) => handleMouseEnter(e, day)}
