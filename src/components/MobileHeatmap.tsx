@@ -34,16 +34,6 @@ function getLevel(count: number, metric: MetricKey): number {
   return 1;
 }
 
-function getRecency(dateStr: string): string {
-  const today = new Date();
-  const [y, m, d] = dateStr.split("-");
-  const date = new Date(Number(y), Number(m) - 1, Number(d));
-  const diffDays = Math.floor((today.getTime() - date.getTime()) / 86400000);
-  if (diffDays <= 14) return "3";
-  if (diffDays <= 45) return "2";
-  if (diffDays <= 90) return "1";
-  return "0";
-}
 
 interface MonthData {
   year: number;
@@ -172,7 +162,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
               <div key={wi} className="flex" style={{ gap: GAP }}>
                 {week.map((day, di) => {
                   if (day.count === -1) {
-                    return <div key={di} className="heatmap-cell" data-level="0" data-recent="0" style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, opacity: 0.3 }} />;
+                    return <div key={di} className="heatmap-cell" data-level="0" style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, opacity: 0.3 }} />;
                   }
                   const level = getLevel(day.count, metric);
                   const isSelected = selectedDate === day.date;
@@ -182,7 +172,7 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
                       key={di}
                       className={`heatmap-cell relative flex items-center justify-center${isSelected ? " ring-2 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
                       data-level={level}
-                      data-recent={getRecency(day.date)}
+                      
                       style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, cursor: "pointer" }}
                       onClick={() => {
                         if (!didLongPress.current) onDayTap(day);
