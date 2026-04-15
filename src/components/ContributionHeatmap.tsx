@@ -229,8 +229,10 @@ export default function ContributionHeatmap() {
     return labels;
   }, [weeks]);
 
-  const colWidth = CELL + GAP;
-  const gridWidth = weeks.length * colWidth - GAP;
+  const cellSize = !isMobile && range === "90d" ? 22 : CELL;
+  const cellGap = !isMobile && range === "90d" ? 3 : GAP;
+  const colWidth = cellSize + cellGap;
+  const gridWidth = weeks.length * colWidth - cellGap;
 
   if (!mounted) {
     return (
@@ -361,9 +363,9 @@ export default function ContributionHeatmap() {
               </div>
 
               <div className="flex">
-                <div className="flex flex-col shrink-0" style={{ width: DAY_LABEL_WIDTH, gap: GAP }}>
+                <div className="flex flex-col shrink-0" style={{ width: DAY_LABEL_WIDTH, gap: cellGap }}>
                   {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label, i) => (
-                    <div key={i} style={{ height: CELL }} className="flex items-center">
+                    <div key={i} style={{ height: cellSize }} className="flex items-center">
                       <span className="text-[11px] leading-none text-muted-foreground">
                         {i === 1 || i === 3 || i === 5 ? label : ""}
                       </span>
@@ -371,7 +373,7 @@ export default function ContributionHeatmap() {
                   ))}
                 </div>
 
-                <div className="flex" style={{ gap: GAP }}>
+                <div className="flex" style={{ gap: cellGap }}>
                   {weeks.map((week, wi) => {
                     const isCurrentWeek = week.some((d) => {
                       const now = new Date();
@@ -382,11 +384,11 @@ export default function ContributionHeatmap() {
                       <div
                         key={wi}
                         className={`flex flex-col snap-start${isCurrentWeek ? " bg-foreground/5 -my-1 py-1 rounded-sm" : ""}`}
-                        style={{ gap: GAP }}
+                        style={{ gap: cellGap }}
                       >
                         {wi === 0 &&
                           Array.from({ length: week[0].dow }).map((_, pi) => (
-                            <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
+                            <div key={`pad-${pi}`} style={{ width: cellSize, height: cellSize }} />
                           ))}
                         {week.map((day, di) => (
                           <div
@@ -394,7 +396,7 @@ export default function ContributionHeatmap() {
                             className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
                             data-level={getLevel(day.count, activeMetric)}
                             data-recent={getRecency(day.date)}
-                            style={{ width: CELL, height: CELL, cursor: "pointer" }}
+                            style={{ width: cellSize, height: cellSize, cursor: "pointer", borderRadius: cellSize > 14 ? 3 : 2 }}
                             onMouseEnter={(e) => handleMouseEnter(e, day)}
                             onMouseLeave={handleMouseLeave}
                             onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
@@ -409,7 +411,7 @@ export default function ContributionHeatmap() {
               <div className="mt-3 flex items-center justify-end gap-1.5 text-[11px] font-mono text-muted-foreground">
                 <span className="mr-1 font-bold">Less</span>
                 {[0, 1, 2, 3, 4, 5].map((level) => (
-                  <div key={level} className="heatmap-cell heatmap-legend" data-level={level} style={{ width: CELL, height: CELL }} />
+                  <div key={level} className="heatmap-cell heatmap-legend" data-level={level} style={{ width: cellSize, height: cellSize, borderRadius: cellSize > 14 ? 3 : 2 }} />
                 ))}
                 <span className="ml-1 font-bold">More</span>
               </div>
