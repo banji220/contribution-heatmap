@@ -6,6 +6,7 @@ import QuickLog from "../components/QuickLog";
 import WeeklyInsights from "../components/WeeklyInsights";
 import StreakPanel from "../components/StreakPanel";
 import MomentumMeter from "../components/MomentumMeter";
+import WeeklyGoal from "../components/WeeklyGoal";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -99,6 +100,7 @@ function Index() {
 
       <div className="pt-8 space-y-6">
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
+        <WeeklyGoal data={sampleData} weeklyTarget={150} />
         <DailyMission doorsToday={doorsToday} target={target} />
         <WeeklyInsights data={sampleData} />
         <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
