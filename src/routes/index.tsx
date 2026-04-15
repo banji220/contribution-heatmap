@@ -1,14 +1,46 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import ContributionHeatmap from "../components/ContributionHeatmap";
 import DailyMission from "../components/DailyMission";
 import QuickLog from "../components/QuickLog";
+import WeeklyInsights from "../components/WeeklyInsights";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
+function generateSampleData(): Record<string, { doors: number; conversations: number; leads: number; appointments: number; wins: number }> {
+  const data: Record<string, { doors: number; conversations: number; leads: number; appointments: number; wins: number }> = {};
+  const today = new Date();
+  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+  const d = new Date(oneYearAgo);
+  while (d <= today) {
+    const key = d.toISOString().slice(0, 10);
+    const isWeekday = d.getDay() >= 1 && d.getDay() <= 5;
+    const rand = Math.random();
+    let doors = 0;
+    if (isWeekday) {
+      if (rand > 0.15) doors = Math.floor(Math.random() * 20) + 5;
+      if (rand > 0.5) doors = Math.floor(Math.random() * 30) + 15;
+      if (rand > 0.85) doors = Math.floor(Math.random() * 40) + 30;
+    } else {
+      if (rand > 0.5) doors = Math.floor(Math.random() * 10) + 1;
+      if (rand > 0.8) doors = Math.floor(Math.random() * 15) + 5;
+    }
+    const conversations = doors > 0 ? Math.floor(doors * (0.3 + Math.random() * 0.3)) : 0;
+    const leads = conversations > 0 ? Math.floor(conversations * (0.2 + Math.random() * 0.4)) : 0;
+    const appointments = leads > 0 ? Math.floor(leads * (0.3 + Math.random() * 0.4)) : 0;
+    const wins = appointments > 0 ? Math.floor(appointments * (0.2 + Math.random() * 0.5)) : 0;
+    data[key] = { doors, conversations, leads, appointments, wins };
+    d.setDate(d.getDate() + 1);
+  }
+  return data;
+}
+
 function Index() {
+  const [sampleData, setSampleData] = useState<Record<string, { doors: number; conversations: number; leads: number; appointments: number; wins: number }>>({});
+  useEffect(() => { setSampleData(generateSampleData()); }, []);
+
   const initialDoors = useMemo(() => {
     const hour = new Date().getHours();
     return Math.min(Math.floor(hour * 1.8 + Math.random() * 5), 40);
@@ -42,6 +74,7 @@ function Index() {
       <div className="pt-8 space-y-6">
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
         <DailyMission doorsToday={doorsToday} target={target} />
+        <WeeklyInsights data={sampleData} />
       </div>
 
       <ContributionHeatmap />
