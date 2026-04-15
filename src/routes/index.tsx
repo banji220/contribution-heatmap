@@ -7,6 +7,7 @@ import WeeklyInsights from "../components/WeeklyInsights";
 import StreakPanel from "../components/StreakPanel";
 import MomentumMeter from "../components/MomentumMeter";
 import WeeklyGoal from "../components/WeeklyGoal";
+import Achievements from "../components/Achievements";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -105,6 +106,7 @@ function Index() {
         <WeeklyInsights data={sampleData} />
         <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
         <MomentumMeter data={sampleData} />
+        <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={sampleData} />
       </div>
 
       <ContributionHeatmap />
