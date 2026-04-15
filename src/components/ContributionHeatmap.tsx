@@ -93,6 +93,8 @@ interface ContributionHeatmapProps {
 export default function ContributionHeatmap({ data: externalData }: ContributionHeatmapProps) {
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
+  const [localOverrides, setLocalOverrides] = useState<Record<string, DayStats>>({});
+  const mergedData = useMemo(() => ({ ...externalData, ...localOverrides }), [externalData, localOverrides]);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
   const [range, setRange] = useState<"90d" | "year">("year");
   const [userOverride, setUserOverride] = useState(false);
