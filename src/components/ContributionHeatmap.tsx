@@ -315,7 +315,38 @@ export default function ContributionHeatmap() {
                         style={{ width: CELL, height: CELL, cursor: "pointer" }}
                         onMouseEnter={(e) => handleMouseEnter(e, day)}
                         onMouseLeave={handleMouseLeave}
-                        onClick={() => setSelectedDay(selectedDay?.date === day.date ? null : day)}
+                        onClick={() => {
+                          if (longPressTimer.current === null) return;
+                          setSelectedDay(selectedDay?.date === day.date ? null : day);
+                        }}
+                        onTouchStart={(e) => {
+                          longPressTimer.current = setTimeout(() => {
+                            longPressTimer.current = null;
+                            const rect = containerRef.current?.getBoundingClientRect();
+                            const cellRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                            if (rect) {
+                              setLongPressDay({
+                                day,
+                                x: cellRect.left - rect.left + cellRect.width / 2,
+                                y: cellRect.top - rect.top + cellRect.height + 4,
+                              });
+                            }
+                          }, 400);
+                        }}
+                        onTouchEnd={() => {
+                          if (longPressTimer.current) {
+                            clearTimeout(longPressTimer.current);
+                            longPressTimer.current = setTimeout(() => {}, 0);
+                            clearTimeout(longPressTimer.current);
+                            longPressTimer.current = {} as ReturnType<typeof setTimeout>;
+                          }
+                        }}
+                        onTouchMove={() => {
+                          if (longPressTimer.current) {
+                            clearTimeout(longPressTimer.current);
+                            longPressTimer.current = {} as ReturnType<typeof setTimeout>;
+                          }
+                        }}
                       />
                     ))}
                   </div>
