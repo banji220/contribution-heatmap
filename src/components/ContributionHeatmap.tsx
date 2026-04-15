@@ -135,7 +135,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
     });
   }, []);
 
-  const days = useMemo(() => buildCalendar(externalData, activeMetric), [externalData, activeMetric]);
+  const days = useMemo(() => buildCalendar(mergedData, activeMetric), [mergedData, activeMetric]);
   const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
@@ -326,14 +326,14 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
             <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-l from-card to-transparent" />
             <MobileHeatmap
-              data={sampleData}
+              data={mergedData}
               metric={activeMetric}
               numMonths={range === "90d" ? 3 : 12}
               selectedDate={selectedDay?.date ?? null}
               resetDate={resetDate}
-              onDayTap={(day) => setSelectedDay(selectedDay?.date === day.date ? null : day)}
+              onDayTap={(day) => setSelectedDay((prev) => prev?.date === day.date ? null : { ...day, recency: computeRecency(day.date) })}
               onDayLongPress={(day) => {
-                setSelectedDay(day);
+                setSelectedDay({ ...day, recency: computeRecency(day.date) });
               }}
             />
           </div>
@@ -414,7 +414,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                             key={di}
                             className={`heatmap-cell${streakSet.has(day.date) ? " in-streak" : ""}${selectedDay?.date === day.date ? " ring-2 ring-foreground" : ""}${resetDate === day.date ? " just-reset" : ""}`}
                             data-level={getLevel(day.count, activeMetric)}
-                            data-recent={getRecency(day.date)}
+                            data-recent={day.recency}
                             style={{ width: cellSize, height: cellSize, cursor: "pointer", borderRadius: cellSize > 14 ? 3 : 2 }}
                             onMouseEnter={(e) => handleMouseEnter(e, day)}
                             onMouseLeave={handleMouseLeave}
@@ -457,10 +457,10 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                       className="px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-left text-destructive hover:bg-destructive/10 transition-colors"
                       onClick={() => {
                         const date = longPressDay.day.date;
-                        const prev = sampleData[date];
+                        const prev = mergedData[date];
                         if (prev) setUndoInfo({ date, stats: { ...prev } });
                         const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-                        setSampleData((p) => ({ ...p, [date]: empty }));
+                        setLocalOverrides((p) => ({ ...p, [date]: empty }));
                         setResetDate(date);
                         setTimeout(() => setResetDate(null), 600);
                         setLongPressDay(null);
@@ -483,14 +483,14 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             open={!!selectedDay}
             onClose={() => setSelectedDay(null)}
             onUpdate={(date, newStats) => {
-              setSampleData((prev) => ({ ...prev, [date]: newStats }));
+              setLocalOverrides((prev) => ({ ...prev, [date]: newStats }));
               setSelectedDay((prev) => prev ? { ...prev, stats: newStats, count: newStats[activeMetric] } : null);
             }}
             onReset={(date) => {
-              const prev = sampleData[date];
+              const prev = mergedData[date];
               if (prev) setUndoInfo({ date, stats: { ...prev } });
               const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-              setSampleData((p) => ({ ...p, [date]: empty }));
+              setLocalOverrides((p) => ({ ...p, [date]: empty }));
               setResetDate(date);
               setTimeout(() => setResetDate(null), 600);
             }}
@@ -502,7 +502,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             <span className="text-xs font-mono text-muted-foreground">Day reset</span>
             <button
               onClick={() => {
-                setSampleData((prev) => ({ ...prev, [undoInfo.date]: undoInfo.stats }));
+                setLocalOverrides((prev) => ({ ...prev, [undoInfo.date]: undoInfo.stats }));
                 setUndoInfo(null);
               }}
               className="text-xs font-mono font-bold uppercase tracking-wider text-foreground hover:opacity-70 transition-opacity"
