@@ -1,17 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import logoImg from "@/assets/logo.png";
-import { useState, useCallback, useMemo, useEffect } from "react";
-import ContributionHeatmap from "../components/ContributionHeatmap";
-import DailyMission from "../components/DailyMission";
+import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from "react";
 import QuickLog from "../components/QuickLog";
-import WeeklyInsights from "../components/WeeklyInsights";
-import StreakPanel from "../components/StreakPanel";
-import MomentumMeter from "../components/MomentumMeter";
+import DailyMission from "../components/DailyMission";
 import WeeklyGoal from "../components/WeeklyGoal";
-import Achievements from "../components/Achievements";
-import TrendView from "../components/TrendView";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+
+const ContributionHeatmap = lazy(() => import("../components/ContributionHeatmap"));
+const WeeklyInsights = lazy(() => import("../components/WeeklyInsights"));
+const StreakPanel = lazy(() => import("../components/StreakPanel"));
+const MomentumMeter = lazy(() => import("../components/MomentumMeter"));
+const TrendView = lazy(() => import("../components/TrendView"));
+const Achievements = lazy(() => import("../components/Achievements"));
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -202,14 +203,18 @@ function Index() {
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
         <WeeklyGoal data={statsData} weeklyTarget={weeklyTarget} onTargetChange={handleWeeklyTargetChange} />
         <DailyMission doorsToday={doorsToday} target={dailyTarget} />
-        <WeeklyInsights data={statsData} />
-        <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
-        <MomentumMeter data={statsData} />
-        <TrendView data={statsData} />
-        <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} />
+        <Suspense fallback={null}>
+          <WeeklyInsights data={statsData} />
+          <StreakPanel currentStreak={currentStreak} longestStreak={longestStreak} />
+          <MomentumMeter data={statsData} />
+          <TrendView data={statsData} />
+          <Achievements doorsToday={doorsToday} currentStreak={currentStreak} longestStreak={longestStreak} weekData={statsData} />
+        </Suspense>
       </div>
 
-      <ContributionHeatmap />
+      <Suspense fallback={null}>
+        <ContributionHeatmap data={statsData} />
+      </Suspense>
     </div>
   );
 }
