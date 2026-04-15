@@ -107,6 +107,7 @@ export default function ContributionHeatmap() {
   const isMobile = useIsMobile();
   const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
+  const [range, setRange] = useState<"90d" | "year">("90d");
   useEffect(() => { setSampleData(generateSampleData()); setMounted(true); }, []);
   const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
 
