@@ -198,15 +198,19 @@ export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, 
           </div>
         </div>
       ))}
-
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-1">
-        <span className="font-bold">Less</span>
-        {[0, 1, 2, 3, 4, 5].map((level) => (
-          <div key={level} className="heatmap-cell heatmap-legend" data-level={level} style={{ width: 14, height: 14, borderRadius: 3 }} />
-        ))}
-        <span className="font-bold">More</span>
-      </div>
     </div>
+
+    {/* Legend — outside scroll */}
+    <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-2">
+      <span className="font-bold">Less</span>
+      {[0, 1, 2, 3, 4, 5].map((level) => (
+        <div key={level} className="heatmap-cell heatmap-legend" data-level={level} style={{ width: 14, height: 14, borderRadius: 3 }} />
+      ))}
+      <span className="font-bold">More</span>
+    </div>
+    <div className="text-center text-[10px] font-mono text-muted-foreground opacity-50 mt-1">
+      ← swipe for more months →
+    </div>
+  </>
   );
 }
