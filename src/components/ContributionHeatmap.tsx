@@ -93,13 +93,11 @@ interface ContributionHeatmapProps {
 export default function ContributionHeatmap({ data: externalData }: ContributionHeatmapProps) {
   const [mounted, setMounted] = useState(false);
   const isMobile = useIsMobile();
-  const [sampleData, setSampleData] = useState<Record<string, DayStats>>(externalData);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
   const [range, setRange] = useState<"90d" | "year">("year");
   const [userOverride, setUserOverride] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { setSampleData(externalData); }, [externalData]);
 
   // Auto-switch based on screen size, but respect manual override
   useEffect(() => {
@@ -120,19 +118,23 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   // Reset override when screen size changes significantly
   useEffect(() => { setUserOverride(false); }, [isMobile]);
 
-  const handleRangeChange = (newRange: "90d" | "year") => {
-    if (newRange === range) return;
-    setUserOverride(true);
-    setTransitioning(true);
-    setTimeout(() => {
-      setRange(newRange);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setTransitioning(false));
-      });
-    }, 150);
-  };
+  const handleRangeChange = useCallback((newRange: "90d" | "year") => {
+    setRange((prev) => {
+      if (prev === newRange) return prev;
+      setUserOverride(true);
+      setTransitioning(true);
+      setTimeout(() => {
+        setRange(newRange);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setTransitioning(false));
+        });
+      }, 150);
+      return prev;
+    });
+  }, []);
 
-  const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
+  const days = useMemo(() => buildCalendar(externalData, activeMetric), [externalData, activeMetric]);
+  const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const [tooltip, setTooltip] = useState<{ day: DayEntry; x: number; y: number } | null>(null);
   const [selectedDay, setSelectedDay] = useState<DayEntry | null>(null);
