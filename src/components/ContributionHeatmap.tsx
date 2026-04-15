@@ -362,12 +362,10 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                 </div>
 
                 <div className="flex" style={{ gap: cellGap }}>
-                  {weeks.map((week, wi) => {
-                    const isCurrentWeek = week.some((d) => d.date === todayKey);
-                    return (
+                  {weeks.map((week, wi) => (
                       <div
                         key={wi}
-                        className={`flex flex-col snap-start${isCurrentWeek ? " bg-foreground/5 -my-1 py-1 rounded-sm" : ""}`}
+                        className="flex flex-col"
                         style={{ gap: cellGap }}
                       >
                         {wi === 0 &&
@@ -387,8 +385,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                           />
                         ))}
                       </div>
-                    );
-                  })}
+                    ))}
                 </div>
               </div>
 
