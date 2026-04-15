@@ -66,11 +66,11 @@ export default function MomentumMeter({ data }: MomentumMeterProps) {
   const maxBar = Math.max(...recentDoors, 1);
 
   return (
-    <section className="w-full px-6 sm:px-10 bg-background">
+    <section className="w-full px-4 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <div className="border-2 border-foreground bg-card px-5 py-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold tracking-tight uppercase">Momentum</h2>
+        <div className="border-2 border-foreground bg-card px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg font-bold tracking-tight uppercase">Momentum</h2>
             <span
               className={`px-2.5 py-0.5 text-xs font-mono font-bold uppercase tracking-wider border-2 ${
                 status.tone === "peak" || status.tone === "high"
