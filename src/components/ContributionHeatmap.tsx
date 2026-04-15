@@ -346,6 +346,8 @@ export default function ContributionHeatmap() {
               if (prev) setUndoInfo({ date, stats: { ...prev } });
               const empty = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
               setSampleData((p) => ({ ...p, [date]: empty }));
+              setResetDate(date);
+              setTimeout(() => setResetDate(null), 600);
             }}
           />
         )}
