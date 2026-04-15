@@ -107,6 +107,7 @@ export default function ContributionHeatmap() {
   const isMobile = useIsMobile();
   const [sampleData, setSampleData] = useState<Record<string, DayStats>>({});
   const [activeMetric, setActiveMetric] = useState<MetricKey>("doors");
+  const [range, setRange] = useState<"90d" | "year">("90d");
   useEffect(() => { setSampleData(generateSampleData()); setMounted(true); }, []);
   const days = useMemo(() => buildCalendar(sampleData, activeMetric), [sampleData, activeMetric]);
 
@@ -174,10 +175,18 @@ export default function ContributionHeatmap() {
     return { currentStreak: current, longestStreak: longest, streakSet: inStreak };
   }, [days]);
 
+  const filteredDays = useMemo(() => {
+    if (range === "year") return days;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    return days.filter((d) => d.date >= cutoffStr);
+  }, [days, range]);
+
   const weeks = useMemo(() => {
     const result: DayEntry[][] = [];
     let week: DayEntry[] = [];
-    for (const day of days) {
+    for (const day of filteredDays) {
       if (day.dow === 0 && week.length > 0) {
         result.push(week);
         week = [];
@@ -186,11 +195,11 @@ export default function ContributionHeatmap() {
     }
     if (week.length > 0) result.push(week);
     return result;
-  }, [days]);
+  }, [filteredDays]);
 
   const totalContributions = useMemo(
-    () => days.reduce((sum, c) => sum + c.count, 0),
-    [days]
+    () => filteredDays.reduce((sum, c) => sum + c.count, 0),
+    [filteredDays]
   );
 
   const metricInfo = METRICS.find((m) => m.key === activeMetric)!;
@@ -231,7 +240,7 @@ export default function ContributionHeatmap() {
               {totalContributions.toLocaleString()}
             </span>
             <span className="text-xs sm:text-sm font-mono text-muted-foreground uppercase tracking-wider">
-              {metricInfo.short} this year
+              {metricInfo.short} {range === "90d" ? "last 90 days" : "this year"}
             </span>
           </div>
           <span className="sm:ml-auto flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-mono">
@@ -245,21 +254,38 @@ export default function ContributionHeatmap() {
           </span>
         </div>
 
-        {/* Metric switcher — scrollable on mobile */}
-        <div className="mb-3 flex gap-1 overflow-x-auto no-scrollbar">
-          {METRICS.map((m) => (
-            <button
-              key={m.key}
-              onClick={() => setActiveMetric(m.key)}
-              className={`px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none whitespace-nowrap ${
-                activeMetric === m.key
-                  ? "bg-foreground text-background"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+        {/* Metric switcher + range toggle */}
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex gap-1 overflow-x-auto no-scrollbar flex-1">
+            {METRICS.map((m) => (
+              <button
+                key={m.key}
+                onClick={() => setActiveMetric(m.key)}
+                className={`px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none whitespace-nowrap ${
+                  activeMetric === m.key
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-0.5 shrink-0">
+            {([["90d", "90d"], ["year", "1y"]] as const).map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setRange(val)}
+                className={`px-2 py-1 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider transition-colors select-none ${
+                  range === val
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {isMobile ? (
@@ -269,6 +295,7 @@ export default function ContributionHeatmap() {
             <MobileHeatmap
               data={sampleData}
               metric={activeMetric}
+              numMonths={range === "90d" ? 3 : 12}
               selectedDate={selectedDay?.date ?? null}
               resetDate={resetDate}
               onDayTap={(day) => setSelectedDay(selectedDay?.date === day.date ? null : day)}

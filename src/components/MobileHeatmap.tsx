@@ -92,14 +92,15 @@ function buildMonths(data: Record<string, DayStats>, metric: MetricKey, numMonth
 interface MobileHeatmapProps {
   data: Record<string, DayStats>;
   metric: MetricKey;
+  numMonths: number;
   onDayTap: (day: DayEntry) => void;
   onDayLongPress: (day: DayEntry) => void;
   selectedDate: string | null;
   resetDate: string | null;
 }
 
-export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, selectedDate, resetDate }: MobileHeatmapProps) {
-  const months = useMemo(() => buildMonths(data, metric, 6), [data, metric]);
+export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDayLongPress, selectedDate, resetDate }: MobileHeatmapProps) {
+  const months = useMemo(() => buildMonths(data, metric, numMonths), [data, metric, numMonths]);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
