@@ -4,6 +4,9 @@ interface Achievement {
   id: string;
   label: string;
   emoji: string;
+  target: number;
+  current: (ctx: AchievementContext) => number;
+  unit: string;
   check: (ctx: AchievementContext) => boolean;
 }
 
@@ -15,15 +18,15 @@ interface AchievementContext {
 }
 
 const ACHIEVEMENTS: Achievement[] = [
-  { id: "first_knock", label: "First Knock", emoji: "👊", check: (c) => c.doorsToday >= 1 },
-  { id: "ten_doors", label: "Double Digits", emoji: "🔟", check: (c) => c.doorsToday >= 10 },
-  { id: "daily_target", label: "Daily Target Hit", emoji: "🎯", check: (c) => c.doorsToday >= 30 },
-  { id: "fifty_doors", label: "50 Door Day", emoji: "💪", check: (c) => c.doorsToday >= 50 },
-  { id: "streak_3", label: "3-Day Streak", emoji: "⚡", check: (c) => c.currentStreak >= 3 },
-  { id: "streak_7", label: "Week Warrior", emoji: "🔥", check: (c) => c.currentStreak >= 7 },
-  { id: "streak_14", label: "Two-Week Terror", emoji: "👑", check: (c) => c.currentStreak >= 14 },
-  { id: "week_100", label: "Century Week", emoji: "💯", check: (c) => c.totalDoorsWeek >= 100 },
-  { id: "week_150", label: "Weekly Goal Crusher", emoji: "🏆", check: (c) => c.totalDoorsWeek >= 150 },
+  { id: "first_knock", label: "First Knock", emoji: "👊", target: 1, unit: "door today", current: (c) => c.doorsToday, check: (c) => c.doorsToday >= 1 },
+  { id: "ten_doors", label: "Double Digits", emoji: "🔟", target: 10, unit: "doors today", current: (c) => c.doorsToday, check: (c) => c.doorsToday >= 10 },
+  { id: "daily_target", label: "Daily Target Hit", emoji: "🎯", target: 30, unit: "doors today", current: (c) => c.doorsToday, check: (c) => c.doorsToday >= 30 },
+  { id: "fifty_doors", label: "50 Door Day", emoji: "💪", target: 50, unit: "doors today", current: (c) => c.doorsToday, check: (c) => c.doorsToday >= 50 },
+  { id: "streak_3", label: "3-Day Streak", emoji: "⚡", target: 3, unit: "day streak", current: (c) => c.currentStreak, check: (c) => c.currentStreak >= 3 },
+  { id: "streak_7", label: "Week Warrior", emoji: "🔥", target: 7, unit: "day streak", current: (c) => c.currentStreak, check: (c) => c.currentStreak >= 7 },
+  { id: "streak_14", label: "Two-Week Terror", emoji: "👑", target: 14, unit: "day streak", current: (c) => c.currentStreak, check: (c) => c.currentStreak >= 14 },
+  { id: "week_100", label: "Century Week", emoji: "💯", target: 100, unit: "doors this week", current: (c) => c.totalDoorsWeek, check: (c) => c.totalDoorsWeek >= 100 },
+  { id: "week_150", label: "Weekly Goal Crusher", emoji: "🏆", target: 150, unit: "doors this week", current: (c) => c.totalDoorsWeek, check: (c) => c.totalDoorsWeek >= 150 },
 ];
 
 interface AchievementsProps {
@@ -119,12 +122,28 @@ export default function Achievements({ doorsToday, currentStreak, longestStreak,
                   <span className="text-[9px] sm:text-[10px] font-mono font-bold text-center leading-tight">{a.label}</span>
                 </div>
               ))}
-              {locked.map((a) => (
-                <div key={a.id} className="flex flex-col items-center justify-center py-3 bg-muted opacity-25">
-                  <span className="text-xl mb-1 grayscale">🔒</span>
-                  <span className="text-[9px] sm:text-[10px] font-mono text-center leading-tight">???</span>
-                </div>
-              ))}
+              {locked.map((a) => {
+                const current = Math.min(a.current(ctx), a.target);
+                const pct = Math.round((current / a.target) * 100);
+                return (
+                  <div key={a.id} className="flex flex-col items-center justify-center py-3 bg-muted/50 border border-border/50 gap-1">
+                    <span className="text-lg grayscale opacity-40">{a.emoji}</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono font-bold text-center leading-tight text-muted-foreground">
+                      {a.label}
+                    </span>
+                    {/* Progress bar */}
+                    <div className="w-4/5 h-1 bg-muted-foreground/15 rounded-full overflow-hidden mt-0.5">
+                      <div
+                        className="h-full bg-primary/60 rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-[8px] sm:text-[9px] font-mono text-muted-foreground/70 leading-tight">
+                      {current}/{a.target} {a.unit}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
