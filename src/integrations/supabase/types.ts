@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_stats: {
+        Row: {
+          appointments: number
+          conversations: number
+          created_at: string
+          date: string
+          doors: number
+          id: string
+          leads: number
+          notes: string | null
+          updated_at: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          appointments?: number
+          conversations?: number
+          created_at?: string
+          date: string
+          doors?: number
+          id?: string
+          leads?: number
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          appointments?: number
+          conversations?: number
+          created_at?: string
+          date?: string
+          doors?: number
+          id?: string
+          leads?: number
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          daily_target: number
+          id: string
+          updated_at: string
+          user_id: string
+          weekly_target: number
+        }
+        Insert: {
+          created_at?: string
+          daily_target?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+          weekly_target?: number
+        }
+        Update: {
+          created_at?: string
+          daily_target?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+          weekly_target?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
