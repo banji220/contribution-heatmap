@@ -139,11 +139,11 @@ export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDay
         return (
           <div
             key={`${month.year}-${month.month}`}
-            className={`shrink-0 snap-center${isCurrent ? " bg-foreground/5 rounded-lg px-2 py-2 -mx-2" : ""}`}
-            style={{ width: isCurrent ? gridWidth + 16 : gridWidth }}
+            className="shrink-0 snap-center"
+            style={{ width: gridWidth }}
           >
             <div className={`text-xs font-mono font-bold uppercase tracking-wider mb-2 text-center ${isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
-              {month.label}{isCurrent ? " ·" : ""}
+              {month.label}
             </div>
 
           {/* DOW headers */}
