@@ -46,7 +46,7 @@ export default function DailyMission({ doorsToday, target }: DailyMissionProps) 
     }
     return { percent: pct, status: s, statusLabel: label, emoji: e, suggestion: getSuggestion(doorsToday, target, hour) };
   }, [doorsToday, target, hour]);
-  }, [doorsToday, target]);
+  
 
   return (
     <section className="w-full px-6 sm:px-10 bg-background">
