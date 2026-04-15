@@ -132,6 +132,20 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* Heatmap cells */
+.heatmap-cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  outline: 1px solid oklch(0 0 0 / 6%);
+  outline-offset: -1px;
+}
+.heatmap-cell[data-level="0"] { background-color: var(--heatmap-0); }
+.heatmap-cell[data-level="1"] { background-color: var(--heatmap-1); }
+.heatmap-cell[data-level="2"] { background-color: var(--heatmap-2); }
+.heatmap-cell[data-level="3"] { background-color: var(--heatmap-3); }
+.heatmap-cell[data-level="4"] { background-color: var(--heatmap-4); }
+
 @layer base {
   * {
     border-color: var(--color-border);
