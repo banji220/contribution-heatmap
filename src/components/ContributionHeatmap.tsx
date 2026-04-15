@@ -333,6 +333,7 @@ export default function ContributionHeatmap() {
           <DayDetail
             date={selectedDay.date}
             stats={selectedDay.stats}
+            open={!!selectedDay}
             onClose={() => setSelectedDay(null)}
           />
         )}
