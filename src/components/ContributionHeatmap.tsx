@@ -15,8 +15,8 @@ interface DayStats {
 
 type DayEntry = { date: string; dow: number; count: number; stats: DayStats };
 
-/** Accepts a map of "YYYY-MM-DD" → doors knocked. Builds the full calendar grid, 0 for missing days. */
-function buildCalendar(data: Record<string, number>): DayEntry[] {
+/** Accepts a map of "YYYY-MM-DD" → day stats. Builds the full calendar grid. */
+function buildCalendar(data: Record<string, DayStats>): DayEntry[] {
   const today = new Date();
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate() + 1);
   const startDay = new Date(oneYearAgo);
@@ -25,12 +25,14 @@ function buildCalendar(data: Record<string, number>): DayEntry[] {
   const days: DayEntry[] = [];
   const seen = new Set<string>();
   const d = new Date(startDay);
+  const empty: DayStats = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
 
   while (d <= today) {
     const key = d.toISOString().slice(0, 10);
     if (!seen.has(key)) {
       seen.add(key);
-      days.push({ date: key, dow: d.getDay(), count: data[key] ?? 0 });
+      const stats = data[key] ?? empty;
+      days.push({ date: key, dow: d.getDay(), count: stats.doors, stats });
     }
     d.setDate(d.getDate() + 1);
   }
