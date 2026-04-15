@@ -1,11 +1,19 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CELL = 10;
 const GAP = 2;
 const DAY_LABEL_WIDTH = 28;
 
-type DayEntry = { date: string; dow: number; count: number };
+interface DayStats {
+  doors: number;
+  conversations: number;
+  leads: number;
+  appointments: number;
+  wins: number;
+}
+
+type DayEntry = { date: string; dow: number; count: number; stats: DayStats };
 
 /** Accepts a map of "YYYY-MM-DD" → doors knocked. Builds the full calendar grid, 0 for missing days. */
 function buildCalendar(data: Record<string, number>): DayEntry[] {
