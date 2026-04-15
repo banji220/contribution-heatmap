@@ -323,8 +323,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
         >
         {isMobile ? (
           <div className="border-2 border-foreground bg-card px-3 py-3 relative">
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-l from-card to-transparent" />
             <MobileHeatmap
               data={mergedData}
               metric={activeMetric}
@@ -339,8 +337,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
           </div>
         ) : (
           <div ref={containerRef} className="border-2 border-foreground bg-card relative">
-            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-r from-card to-transparent" />
-            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 z-10 bg-gradient-to-l from-card to-transparent" />
             <div ref={scrollRef} className="overflow-x-auto no-scrollbar overscroll-x-contain scroll-smooth snap-x snap-proximity px-4 py-3">
               {tooltip && (
                 <div
@@ -435,7 +431,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setLongPressDay(null)} onTouchStart={() => setLongPressDay(null)} />
                   <div
-                    className="absolute z-50 bg-card border-2 border-foreground shadow-lg flex flex-col min-w-[120px] animate-in fade-in zoom-in-95 duration-150"
+                    className="absolute z-50 bg-card border-2 border-foreground flex flex-col min-w-[120px]"
                     style={{ left: Math.max(8, longPressDay.x - 60), top: longPressDay.y }}
                   >
                     <button
