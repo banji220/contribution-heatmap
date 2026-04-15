@@ -1,4 +1,11 @@
 import { useMemo } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface DayStats {
   doors: number;
@@ -11,6 +18,7 @@ interface DayStats {
 interface DayDetailProps {
   date: string;
   stats: DayStats;
+  open: boolean;
   onClose: () => void;
 }
 
@@ -42,7 +50,7 @@ function getNote(stats: DayStats): string {
   return "Standard day. Keep building momentum.";
 }
 
-export default function DayDetail({ date, stats, onClose }: DayDetailProps) {
+export default function DayDetail({ date, stats, open, onClose }: DayDetailProps) {
   const maxVal = useMemo(() => Math.max(stats.doors, 1), [stats.doors]);
   const note = useMemo(() => getNote(stats), [stats]);
 
@@ -50,63 +58,61 @@ export default function DayDetail({ date, stats, onClose }: DayDetailProps) {
   const closeRate = stats.leads > 0 ? ((stats.wins / stats.leads) * 100).toFixed(0) : "—";
 
   return (
-    <div className="border-2 border-foreground bg-card mt-3">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b-2 border-foreground">
-        <div>
-          <h3 className="text-sm font-bold uppercase tracking-tight">{formatDate(date)}</h3>
-        </div>
-        <button
-          onClick={onClose}
-          className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-foreground font-mono font-bold text-lg transition-colors"
-        >
-          ×
-        </button>
-      </div>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md border-2 border-foreground bg-card p-0 gap-0">
+        <DialogHeader className="px-5 py-3 border-b-2 border-foreground">
+          <DialogTitle className="text-sm font-bold uppercase tracking-tight">
+            {formatDate(date)}
+          </DialogTitle>
+          <DialogDescription className="text-xs font-mono text-muted-foreground">
+            Daily performance breakdown
+          </DialogDescription>
+        </DialogHeader>
 
-      <div className="px-5 py-4 space-y-4">
-        {/* Funnel breakdown */}
-        <div className="space-y-2">
-          {FUNNEL.map((item) => {
-            const val = stats[item.key];
-            const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
-            return (
-              <div key={item.key} className="flex items-center gap-3">
-                <span className="text-sm w-5 text-center">{item.icon}</span>
-                <span className="text-xs font-mono text-muted-foreground w-28 shrink-0">{item.label}</span>
-                <div className="flex-1 h-4 bg-muted overflow-hidden relative">
-                  <div
-                    className="h-full transition-all duration-300"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: val > 0 ? "var(--heatmap-4)" : "transparent",
-                    }}
-                  />
+        <div className="px-5 py-4 space-y-4">
+          {/* Funnel breakdown */}
+          <div className="space-y-2">
+            {FUNNEL.map((item) => {
+              const val = stats[item.key];
+              const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
+              return (
+                <div key={item.key} className="flex items-center gap-3">
+                  <span className="text-sm w-5 text-center">{item.icon}</span>
+                  <span className="text-xs font-mono text-muted-foreground w-28 shrink-0">{item.label}</span>
+                  <div className="flex-1 h-4 bg-muted overflow-hidden relative">
+                    <div
+                      className="h-full transition-all duration-300"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: val > 0 ? "var(--heatmap-4)" : "transparent",
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-mono font-bold tabular-nums w-8 text-right">{val}</span>
                 </div>
-                <span className="text-sm font-mono font-bold tabular-nums w-8 text-right">{val}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Rates */}
-        <div className="flex gap-4 pt-1">
-          <div className="flex-1 bg-muted px-3 py-2">
-            <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Conv Rate</div>
-            <div className="text-lg font-bold font-mono tabular-nums">{convRate}%</div>
+              );
+            })}
           </div>
-          <div className="flex-1 bg-muted px-3 py-2">
-            <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Close Rate</div>
-            <div className="text-lg font-bold font-mono tabular-nums">{closeRate}%</div>
+
+          {/* Rates */}
+          <div className="flex gap-4 pt-1">
+            <div className="flex-1 bg-muted px-3 py-2">
+              <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Conv Rate</div>
+              <div className="text-lg font-bold font-mono tabular-nums">{convRate}%</div>
+            </div>
+            <div className="flex-1 bg-muted px-3 py-2">
+              <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Close Rate</div>
+              <div className="text-lg font-bold font-mono tabular-nums">{closeRate}%</div>
+            </div>
+          </div>
+
+          {/* Note */}
+          <div className="pt-1">
+            <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Notes</div>
+            <p className="text-sm font-mono text-foreground">{note}</p>
           </div>
         </div>
-
-        {/* Note */}
-        <div className="pt-1">
-          <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-1">Notes</div>
-          <p className="text-sm font-mono text-foreground">{note}</p>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
