@@ -293,7 +293,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
           </div>
         </div>
 
-        <div>
         {isMobile ? (
             <MobileHeatmap
               data={mergedData}
@@ -434,7 +433,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
             </div>
           </div>
         )}
-        </div>
 
         {selectedDay && (
           <DayDetail
