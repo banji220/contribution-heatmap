@@ -111,11 +111,16 @@ export default function ContributionHeatmap() {
   const gridWidth = weeks.length * colWidth - GAP;
 
   return (
-    <section className="w-full px-4 py-10 sm:px-6 lg:px-8 bg-background">
+    <section className="w-full px-6 py-10 sm:px-10 bg-background">
       <div className="mx-auto max-w-5xl">
-        <p className="mb-3 text-sm text-muted-foreground">
-          {totalContributions.toLocaleString()} doors knocked in the last year
-        </p>
+        <div className="mb-4 flex items-baseline gap-3">
+          <span className="text-4xl font-bold tabular-nums tracking-tight">
+            {totalContributions.toLocaleString()}
+          </span>
+          <span className="text-sm font-mono text-muted-foreground uppercase tracking-wider">
+            doors knocked this year
+          </span>
+        </div>
 
         <div className="overflow-x-auto rounded-md border border-border bg-card px-4 py-3">
           {/* Month labels row */}
