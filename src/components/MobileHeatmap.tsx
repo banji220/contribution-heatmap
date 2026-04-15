@@ -121,15 +121,18 @@ export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, 
       className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-2"
       style={{ WebkitOverflowScrolling: "touch" }}
     >
-      {months.map((month) => (
-        <div
-          key={`${month.year}-${month.month}`}
-          className="shrink-0 snap-center"
-          style={{ width: gridWidth }}
-        >
-          <div className="text-xs font-mono font-bold uppercase tracking-wider text-muted-foreground mb-2 text-center">
-            {month.label}
-          </div>
+      {months.map((month) => {
+        const now = new Date();
+        const isCurrent = month.year === now.getFullYear() && month.month === now.getMonth();
+        return (
+          <div
+            key={`${month.year}-${month.month}`}
+            className={`shrink-0 snap-center${isCurrent ? " bg-foreground/5 rounded-lg px-2 py-2 -mx-2" : ""}`}
+            style={{ width: isCurrent ? gridWidth + 16 : gridWidth }}
+          >
+            <div className={`text-xs font-mono font-bold uppercase tracking-wider mb-2 text-center ${isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
+              {month.label}{isCurrent ? " ·" : ""}
+            </div>
 
           {/* DOW headers */}
           <div className="flex" style={{ gap: GAP, marginBottom: GAP }}>
