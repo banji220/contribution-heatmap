@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback, memo } from "react";
 import DayDetail from "./DayDetail";
 import MobileHeatmap from "./MobileHeatmap";
 import { useIsMobile } from "@/hooks/use-mobile";
