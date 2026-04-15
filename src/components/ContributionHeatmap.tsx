@@ -334,7 +334,7 @@ export default function ContributionHeatmap() {
 
                 <div className="flex" style={{ gap: GAP }}>
                   {weeks.map((week, wi) => (
-                    <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
+                    <div key={wi} className="flex flex-col snap-start" style={{ gap: GAP }}>
                       {wi === 0 &&
                         Array.from({ length: week[0].dow }).map((_, pi) => (
                           <div key={`pad-${pi}`} style={{ width: CELL, height: CELL }} />
