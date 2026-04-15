@@ -121,19 +121,6 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   const didLongPress = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   const { currentStreak, longestStreak, streakSet } = useMemo(() => {
     let current = 0;
@@ -198,13 +185,9 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
   const metricInfo = METRICS.find((m) => m.key === activeMetric)!;
 
   const cellSize = useMemo(() => {
-    if (containerWidth === 0 || isMobile) return 14;
-    const padding = 32;
-    const available = containerWidth - padding - DAY_LABEL_WIDTH;
-    const numWeeks = weeks.length || 53;
-    const maxCell = Math.floor((available + GAP) / numWeeks - GAP);
-    return Math.max(11, Math.min(maxCell, 24));
-  }, [containerWidth, weeks.length, isMobile]);
+    if (isMobile) return 14;
+    return 15;
+  }, [isMobile]);
 
   const cellGap = GAP;
   const colWidth = cellSize + cellGap;
@@ -240,7 +223,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
   return (
     <section className="w-full px-4 py-6 sm:px-10 sm:py-10 bg-background">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto w-fit max-w-full">
         {/* Header row — stacked on mobile */}
         <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
           <div className="flex items-baseline gap-2 flex-wrap">
