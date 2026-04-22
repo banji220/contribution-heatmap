@@ -262,26 +262,10 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                   </button>
                 ))}
               </div>
-              <div className="flex gap-0.5 shrink-0">
-                {([["90d", "90d"], ["year", "1y"]] as const).map(([val, label]) => (
-                  <button
-                    key={val}
-                    onClick={() => handleRangeChange(val)}
-                    className={`px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-wider transition-colors select-none ${
-                      range === val
-                        ? "bg-foreground text-background"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
             </div>
             <MobileHeatmap
               data={mergedData}
               metric={activeMetric}
-              numMonths={range === "90d" ? 3 : 12}
               selectedDate={selectedDay?.date ?? null}
               resetDate={resetDate}
               onDayTap={(day) => setSelectedDay((prev) => prev?.date === day.date ? null : day)}
