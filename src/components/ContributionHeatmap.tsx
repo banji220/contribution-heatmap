@@ -223,8 +223,8 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
 
 
   return (
-    <section className="w-full px-4 py-6 sm:px-6 sm:py-8 bg-background">
-      <div className="mx-auto w-fit max-w-full">
+    <section className="w-full px-2 py-6 sm:px-6 sm:py-8 bg-background">
+      <div className="w-full sm:mx-auto sm:w-fit sm:max-w-full">
         {isMobile ? (
           <>
             {/* Header row — stacked on mobile */}
