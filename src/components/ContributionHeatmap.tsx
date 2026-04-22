@@ -226,7 +226,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
     <section className="w-full px-2 py-6 sm:px-6 sm:py-8 bg-background">
       <div className="w-full sm:mx-auto sm:w-fit sm:max-w-full">
         {isMobile ? (
-          <>
+          <div className="mx-auto w-[90%] border-2 border-foreground bg-card px-3 py-4">
             {/* Header row — stacked on mobile */}
             <div className="mb-3 flex flex-col gap-1">
               <div className="flex items-baseline gap-2 flex-wrap">
@@ -273,7 +273,7 @@ export default function ContributionHeatmap({ data: externalData }: Contribution
                 setSelectedDay(day);
               }}
             />
-          </>
+          </div>
         ) : (
           <div ref={containerRef} className="border-2 border-foreground bg-card relative">
             <div ref={scrollRef} className="overflow-x-auto no-scrollbar scroll-gpu overscroll-x-contain scroll-smooth snap-x snap-proximity px-5 pt-5 pb-4">
