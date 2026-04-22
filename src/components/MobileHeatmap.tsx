@@ -1,5 +1,4 @@
-import React, { useMemo, useState, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useMemo, useRef } from "react";
 
 interface DayStats {
   doors: number;
@@ -20,12 +19,10 @@ const METRIC_THRESHOLDS: Record<MetricKey, [number, number, number, number]> = {
   wins: [1, 2, 4, 6],
 };
 
-const DOW_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-const CELL_GAP = 3;
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAY_ABBR = ["", "Mon", "", "Wed", "", "Fri", ""];
+const CELL = 10;
+const GAP = 2;
 
 function getLevel(count: number, metric: MetricKey): number {
   if (count === 0) return 0;
@@ -37,59 +34,14 @@ function getLevel(count: number, metric: MetricKey): number {
   return 1;
 }
 
-interface MonthData {
-  year: number;
-  month: number;
-  label: string;
-  weeks: DayEntry[][];
-}
-
-function buildMonth(data: Record<string, DayStats>, metric: MetricKey, year: number, month: number): MonthData {
-  const today = new Date();
-  const empty: DayStats = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDow = new Date(year, month, 1).getDay();
-
-  const days: DayEntry[] = [];
-  for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(year, month, d);
-    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    const isFuture = date > today;
-    const stats = isFuture ? empty : (data[key] ?? empty);
-    days.push({ date: key, dow: date.getDay(), count: isFuture ? -1 : stats[metric], stats });
-  }
-
-  const weeks: DayEntry[][] = [];
-  let week: DayEntry[] = [];
-  for (let p = 0; p < firstDow; p++) {
-    week.push({ date: "", dow: p, count: -1, stats: empty });
-  }
-  for (const day of days) {
-    if (day.dow === 0 && week.length > 0) {
-      weeks.push(week);
-      week = [];
-    }
-    week.push(day);
-  }
-  if (week.length > 0) {
-    while (week.length < 7) {
-      week.push({ date: "", dow: week.length, count: -1, stats: empty });
-    }
-    weeks.push(week);
-  }
-
-  return {
-    year,
-    month,
-    label: `${MONTH_NAMES[month]} ${year}`,
-    weeks,
-  };
+function fmtKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 interface MobileHeatmapProps {
   data: Record<string, DayStats>;
   metric: MetricKey;
-  numMonths: number;
+  numMonths?: number;
   onDayTap: (day: DayEntry) => void;
   onDayLongPress: (day: DayEntry) => void;
   selectedDate: string | null;
@@ -97,157 +49,157 @@ interface MobileHeatmapProps {
 }
 
 export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, selectedDate, resetDate }: MobileHeatmapProps) {
-  const today = useMemo(() => new Date(), []);
-  const todayKey = useMemo(
-    () => `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
-    [today],
-  );
+  // Build last ~13 weeks (91 days) ending today, aligned so Sunday is the top row.
+  const { weeks, monthMarkers } = useMemo(() => {
+    const empty: DayStats = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  // Active month state — preserved across edits
-  const [active, setActive] = useState<{ year: number; month: number }>({
-    year: today.getFullYear(),
-    month: today.getMonth(),
-  });
+    const numWeeks = 13;
+    // Find the Sunday of the week starting numWeeks-1 weeks ago
+    const start = new Date(today);
+    start.setDate(today.getDate() - today.getDay() - (numWeeks - 1) * 7);
 
-  const monthData = useMemo(
-    () => buildMonth(data, metric, active.year, active.month),
-    [data, metric, active.year, active.month],
-  );
+    const weeks: DayEntry[][] = [];
+    const monthMarkers: { col: number; label: string }[] = [];
+    let lastMonth = -1;
+
+    for (let w = 0; w < numWeeks; w++) {
+      const week: DayEntry[] = [];
+      for (let dow = 0; dow < 7; dow++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + w * 7 + dow);
+        const isFuture = d > today;
+        const key = fmtKey(d);
+        const stats = isFuture ? empty : (data[key] ?? empty);
+        week.push({
+          date: isFuture ? "" : key,
+          dow,
+          count: isFuture ? -1 : stats[metric],
+          stats,
+        });
+      }
+      // Month label = first day of week's month, if it changed
+      const firstReal = week.find((d) => d.date) ?? week[0];
+      if (firstReal.date) {
+        const m = new Date(firstReal.date).getMonth();
+        if (m !== lastMonth) {
+          monthMarkers.push({ col: w, label: MONTH_ABBR[m] });
+          lastMonth = m;
+        }
+      }
+      weeks.push(week);
+    }
+
+    return { weeks, monthMarkers };
+  }, [data, metric]);
 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
 
-  const goPrev = () => {
-    setActive((a) => {
-      const d = new Date(a.year, a.month - 1, 1);
-      return { year: d.getFullYear(), month: d.getMonth() };
-    });
-  };
-
-  const goNext = () => {
-    setActive((a) => {
-      const d = new Date(a.year, a.month + 1, 1);
-      // don't go past current month
-      if (d.getFullYear() > today.getFullYear() || (d.getFullYear() === today.getFullYear() && d.getMonth() > today.getMonth())) {
-        return a;
-      }
-      return { year: d.getFullYear(), month: d.getMonth() };
-    });
-  };
-
-  const isAtCurrentMonth = active.year === today.getFullYear() && active.month === today.getMonth();
+  const numWeeks = weeks.length;
+  const dayLabelWidth = 26;
+  const colWidth = CELL + GAP;
+  const gridWidth = numWeeks * CELL + (numWeeks - 1) * GAP;
 
   return (
-    <>
-      {/* Month header with arrows */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <button
-          onClick={goPrev}
-          className="p-1.5 hover:bg-muted active:bg-muted rounded transition-colors"
-          aria-label="Previous month"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <div className="text-sm font-mono font-bold uppercase tracking-wider text-foreground">
-          {monthData.label}
-        </div>
-        <button
-          onClick={goNext}
-          disabled={isAtCurrentMonth}
-          className="p-1.5 hover:bg-muted active:bg-muted rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Next month"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* DOW headers — full width grid */}
-      <div className="grid grid-cols-7 mb-1" style={{ gap: CELL_GAP }}>
-        {DOW_LABELS.map((label, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-center text-[10px] font-mono text-muted-foreground h-5"
-          >
-            {label}
+    <div className="w-full">
+      <div className="flex flex-col items-center">
+        <div style={{ width: dayLabelWidth + gridWidth }}>
+          {/* Month labels row */}
+          <div className="relative" style={{ height: 14, marginLeft: dayLabelWidth, width: gridWidth }}>
+            {monthMarkers.map((m, i) => (
+              <span
+                key={i}
+                className="absolute top-0 text-[10px] font-mono text-muted-foreground leading-none"
+                style={{ left: m.col * colWidth }}
+              >
+                {m.label}
+              </span>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Weeks — full width grid */}
-      <div className="flex flex-col" style={{ gap: CELL_GAP }}>
-        {monthData.weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7" style={{ gap: CELL_GAP }}>
-            {week.map((day, di) => {
-              if (day.count === -1) {
-                return (
-                  <div
-                    key={di}
-                    className="heatmap-cell aspect-square"
-                    data-level="0"
-                    style={{ borderRadius: 4, opacity: 0.3 }}
-                  />
-                );
-              }
-              const level = getLevel(day.count, metric);
-              const isSelected = selectedDate === day.date;
-              const isReset = resetDate === day.date;
-              const isToday = day.date === todayKey;
-              return (
-                <div
-                  key={di}
-                  className={`heatmap-cell relative flex items-center justify-center aspect-square${isSelected ? " ring-2 ring-foreground" : ""}${isReset ? " just-reset" : ""}${isToday ? " ring-2 ring-foreground" : ""}`}
-                  data-level={level}
-                  style={{ borderRadius: 4, cursor: "pointer" }}
-                  onClick={() => {
-                    if (!didLongPress.current) onDayTap(day);
-                  }}
-                  onTouchStart={() => {
-                    didLongPress.current = false;
-                    longPressTimer.current = setTimeout(() => {
-                      didLongPress.current = true;
-                      longPressTimer.current = null;
-                      onDayLongPress(day);
-                    }, 400);
-                  }}
-                  onTouchEnd={(e) => {
-                    if (longPressTimer.current) {
-                      clearTimeout(longPressTimer.current);
-                      longPressTimer.current = null;
-                    }
-                    if (didLongPress.current) e.preventDefault();
-                  }}
-                  onTouchMove={() => {
-                    if (longPressTimer.current) {
-                      clearTimeout(longPressTimer.current);
-                      longPressTimer.current = null;
-                    }
-                  }}
-                >
-                  {day.count > 0 && (
-                    <span className="text-[10px] font-mono font-bold tabular-nums opacity-70 text-background">
-                      {day.count}
-                    </span>
-                  )}
+          <div className="flex">
+            {/* Day labels (Mon/Wed/Fri) */}
+            <div className="flex flex-col shrink-0" style={{ width: dayLabelWidth, gap: GAP }}>
+              {DAY_ABBR.map((label, i) => (
+                <div key={i} style={{ height: CELL }} className="flex items-center">
+                  <span className="text-[9px] font-mono text-muted-foreground leading-none">{label}</span>
                 </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+              ))}
+            </div>
 
-      {/* Legend */}
-      <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-3">
-        <span className="font-bold">Less</span>
-        {[0, 1, 2, 3, 4, 5].map((level) => (
-          <div
-            key={level}
-            className="heatmap-cell heatmap-legend"
-            data-level={level}
-            style={{ width: 14, height: 14, borderRadius: 3 }}
-          />
-        ))}
-        <span className="font-bold">More</span>
+            {/* Weeks */}
+            <div className="flex" style={{ gap: GAP }}>
+              {weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
+                  {week.map((day, di) => {
+                    if (day.count === -1) {
+                      return (
+                        <div
+                          key={di}
+                          className="heatmap-cell"
+                          data-level="0"
+                          style={{ width: CELL, height: CELL, borderRadius: 2, opacity: 0.3 }}
+                        />
+                      );
+                    }
+                    const level = getLevel(day.count, metric);
+                    const isSelected = selectedDate === day.date;
+                    const isReset = resetDate === day.date;
+                    return (
+                      <div
+                        key={di}
+                        className={`heatmap-cell${isSelected ? " ring-1 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
+                        data-level={level}
+                        style={{ width: CELL, height: CELL, borderRadius: 2, cursor: "pointer" }}
+                        onClick={() => {
+                          if (!didLongPress.current) onDayTap(day);
+                        }}
+                        onTouchStart={() => {
+                          didLongPress.current = false;
+                          longPressTimer.current = setTimeout(() => {
+                            didLongPress.current = true;
+                            longPressTimer.current = null;
+                            onDayLongPress(day);
+                          }, 400);
+                        }}
+                        onTouchEnd={(e) => {
+                          if (longPressTimer.current) {
+                            clearTimeout(longPressTimer.current);
+                            longPressTimer.current = null;
+                          }
+                          if (didLongPress.current) e.preventDefault();
+                        }}
+                        onTouchMove={() => {
+                          if (longPressTimer.current) {
+                            clearTimeout(longPressTimer.current);
+                            longPressTimer.current = null;
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-3">
+          <span className="font-bold">Less</span>
+          {[0, 1, 2, 3, 4, 5].map((level) => (
+            <div
+              key={level}
+              className="heatmap-cell heatmap-legend"
+              data-level={level}
+              style={{ width: 12, height: 12, borderRadius: 2 }}
+            />
+          ))}
+          <span className="font-bold">More</span>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
