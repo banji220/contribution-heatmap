@@ -148,6 +148,13 @@ function Index() {
     }
   }, [user]);
 
+  const handleDailyTargetChange = useCallback(async (target: number) => {
+    setDailyTarget(target);
+    if (user) {
+      await supabase.from("user_settings").update({ daily_target: target }).eq("user_id", user.id);
+    }
+  }, [user]);
+
   // Defer streak computation — only runs after data is ready
   const { currentStreak, longestStreak } = useMemo(() => {
     if (!dataReady) return { currentStreak: 0, longestStreak: 0 };
@@ -214,7 +221,7 @@ function Index() {
 
       <div className="pt-4 sm:pt-8 space-y-4 sm:space-y-6">
         <QuickLog onLog={handleLog} todayDoors={doorsToday} />
-        <DailyMission doorsToday={doorsToday} target={dailyTarget} />
+        <DailyMission doorsToday={doorsToday} target={dailyTarget} onTargetChange={handleDailyTargetChange} />
         {dataReady && (
           <Suspense fallback={null}>
             <WeeklyGoal data={statsData} weeklyTarget={weeklyTarget} onTargetChange={handleWeeklyTargetChange} />
