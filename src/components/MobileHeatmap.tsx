@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import React, { useMemo, useState, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DayStats {
   doors: number;
@@ -20,9 +21,11 @@ const METRIC_THRESHOLDS: Record<MetricKey, [number, number, number, number]> = {
 };
 
 const DOW_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const CELL_SIZE = 36;
-const GAP = 3;
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const CELL_GAP = 3;
 
 function getLevel(count: number, metric: MetricKey): number {
   if (count === 0) return 0;
@@ -34,7 +37,6 @@ function getLevel(count: number, metric: MetricKey): number {
   return 1;
 }
 
-
 interface MonthData {
   year: number;
   month: number;
@@ -42,62 +44,46 @@ interface MonthData {
   weeks: DayEntry[][];
 }
 
-function buildMonths(data: Record<string, DayStats>, metric: MetricKey, numMonths: number): MonthData[] {
+function buildMonth(data: Record<string, DayStats>, metric: MetricKey, year: number, month: number): MonthData {
   const today = new Date();
-  const months: MonthData[] = [];
   const empty: DayStats = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDow = new Date(year, month, 1).getDay();
 
-  for (let m = 0; m < numMonths; m++) {
-    const targetDate = new Date(today.getFullYear(), today.getMonth() - m, 1);
-    const year = targetDate.getFullYear();
-    const month = targetDate.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDow = new Date(year, month, 1).getDay();
-
-    const days: DayEntry[] = [];
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, month, d);
-      const key = date.toISOString().slice(0, 10);
-      const isFuture = date > today;
-      const stats = isFuture ? empty : (data[key] ?? empty);
-      days.push({ date: key, dow: date.getDay(), count: isFuture ? -1 : stats[metric], stats });
-    }
-
-    // Group into weeks
-    const weeks: DayEntry[][] = [];
-    let week: DayEntry[] = [];
-    // Pad start of first week
-    for (let p = 0; p < firstDow; p++) {
-      week.push({ date: "", dow: p, count: -1, stats: empty });
-    }
-    for (const day of days) {
-      if (day.dow === 0 && week.length > 0) {
-        weeks.push(week);
-        week = [];
-      }
-      week.push(day);
-    }
-    // Pad last week to 7 days
-    if (week.length > 0) {
-      while (week.length < 7) {
-        week.push({ date: "", dow: week.length, count: -1, stats: empty });
-      }
-      weeks.push(week);
-    }
-    // Pad to 6 weeks so all months have the same height
-    while (weeks.length < 6) {
-      weeks.push(Array.from({ length: 7 }, (_, i) => ({ date: "", dow: i, count: -1, stats: empty })));
-    }
-
-    months.push({
-      year,
-      month,
-      label: `${MONTH_NAMES[month]} ${year}`,
-      weeks,
-    });
+  const days: DayEntry[] = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const isFuture = date > today;
+    const stats = isFuture ? empty : (data[key] ?? empty);
+    days.push({ date: key, dow: date.getDay(), count: isFuture ? -1 : stats[metric], stats });
   }
 
-  return months.reverse();
+  const weeks: DayEntry[][] = [];
+  let week: DayEntry[] = [];
+  for (let p = 0; p < firstDow; p++) {
+    week.push({ date: "", dow: p, count: -1, stats: empty });
+  }
+  for (const day of days) {
+    if (day.dow === 0 && week.length > 0) {
+      weeks.push(week);
+      week = [];
+    }
+    week.push(day);
+  }
+  if (week.length > 0) {
+    while (week.length < 7) {
+      week.push({ date: "", dow: week.length, count: -1, stats: empty });
+    }
+    weeks.push(week);
+  }
+
+  return {
+    year,
+    month,
+    label: `${MONTH_NAMES[month]} ${year}`,
+    weeks,
+  };
 }
 
 interface MobileHeatmapProps {
@@ -110,158 +96,158 @@ interface MobileHeatmapProps {
   resetDate: string | null;
 }
 
-export default function MobileHeatmap({ data, metric, numMonths, onDayTap, onDayLongPress, selectedDate, resetDate }: MobileHeatmapProps) {
-  const months = useMemo(() => buildMonths(data, metric, numMonths), [data, metric, numMonths]);
+export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, selectedDate, resetDate }: MobileHeatmapProps) {
+  const today = useMemo(() => new Date(), []);
+  const todayKey = useMemo(
+    () => `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`,
+    [today],
+  );
+
+  // Active month state — preserved across edits
+  const [active, setActive] = useState<{ year: number; month: number }>({
+    year: today.getFullYear(),
+    month: today.getMonth(),
+  });
+
+  const monthData = useMemo(
+    () => buildMonth(data, metric, active.year, active.month),
+    [data, metric, active.year, active.month],
+  );
+
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const gridWidth = 7 * CELL_SIZE + 6 * GAP;
-  const monthWidth = gridWidth + 24; // grid + padding
-  const lastMonthIndex = Math.max(0, months.length - 1);
-
-  const [activeMonthIndex, setActiveMonthIndex] = useState(lastMonthIndex);
-  const savedScroll = useRef<number | null>(null);
-  const hasInitialized = useRef(false);
-
-  useEffect(() => {
-    setActiveMonthIndex((prev) => Math.min(prev, lastMonthIndex));
-  }, [lastMonthIndex]);
-
-  const syncActiveMonth = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const center = el.scrollLeft + el.clientWidth / 2;
-    const index = Math.round(center / (gridWidth + 16) - 0.5);
-    const clampedIndex = Math.max(0, Math.min(index, lastMonthIndex));
-    setActiveMonthIndex(clampedIndex);
-    savedScroll.current = el.scrollLeft;
-  }, [gridWidth, lastMonthIndex]);
-
-  useLayoutEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    el.style.scrollBehavior = "auto";
-    el.style.scrollSnapType = "none";
-
-    if (!hasInitialized.current) {
-      el.scrollLeft = el.scrollWidth;
-      savedScroll.current = el.scrollLeft;
-      setActiveMonthIndex(lastMonthIndex);
-      hasInitialized.current = true;
-    } else if (savedScroll.current !== null) {
-      el.scrollLeft = savedScroll.current;
-    }
-
-    requestAnimationFrame(() => {
-      el.style.scrollBehavior = "";
-      el.style.scrollSnapType = "";
-      syncActiveMonth();
+  const goPrev = () => {
+    setActive((a) => {
+      const d = new Date(a.year, a.month - 1, 1);
+      return { year: d.getFullYear(), month: d.getMonth() };
     });
-  }, [months, lastMonthIndex, syncActiveMonth]);
+  };
+
+  const goNext = () => {
+    setActive((a) => {
+      const d = new Date(a.year, a.month + 1, 1);
+      // don't go past current month
+      if (d.getFullYear() > today.getFullYear() || (d.getFullYear() === today.getFullYear() && d.getMonth() > today.getMonth())) {
+        return a;
+      }
+      return { year: d.getFullYear(), month: d.getMonth() };
+    });
+  };
+
+  const isAtCurrentMonth = active.year === today.getFullYear() && active.month === today.getMonth();
 
   return (
     <>
-    <div
-      ref={scrollRef}
-      onScroll={syncActiveMonth}
-      className="flex gap-4 overflow-x-auto no-scrollbar scroll-gpu snap-x snap-mandatory pb-2"
-      style={{ touchAction: "pan-x" }}
-    >
-      {months.map((month) => (
-          <div
-            key={`${month.year}-${month.month}`}
-            className="shrink-0 snap-center"
-            style={{ width: gridWidth, minWidth: gridWidth }}
-          >
-            <div className="text-xs font-mono font-bold uppercase tracking-wider mb-2 text-center text-muted-foreground">
-              {month.label}
-            </div>
-
-          {/* DOW headers */}
-          <div className="flex" style={{ gap: GAP, marginBottom: GAP }}>
-            {DOW_LABELS.map((label, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-center text-[10px] font-mono text-muted-foreground"
-                style={{ width: CELL_SIZE, height: 20 }}
-              >
-                {label}
-              </div>
-            ))}
-          </div>
-
-          {/* Weeks */}
-          <div className="flex flex-col" style={{ gap: GAP }}>
-            {month.weeks.map((week, wi) => (
-              <div key={wi} className="flex" style={{ gap: GAP }}>
-                {week.map((day, di) => {
-                  if (day.count === -1) {
-                    return <div key={di} className="heatmap-cell" data-level="0" style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, opacity: 0.3 }} />;
-                  }
-                  const level = getLevel(day.count, metric);
-                  const isSelected = selectedDate === day.date;
-                  const isReset = resetDate === day.date;
-                  return (
-                    <div
-                      key={di}
-                      className={`heatmap-cell relative flex items-center justify-center${isSelected ? " ring-2 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
-                      data-level={level}
-                      
-                      style={{ width: CELL_SIZE, height: CELL_SIZE, borderRadius: 4, cursor: "pointer" }}
-                      onClick={() => {
-                        if (!didLongPress.current) onDayTap(day);
-                      }}
-                      onTouchStart={() => {
-                        didLongPress.current = false;
-                        longPressTimer.current = setTimeout(() => {
-                          didLongPress.current = true;
-                          longPressTimer.current = null;
-                          onDayLongPress(day);
-                        }, 400);
-                      }}
-                      onTouchEnd={(e) => {
-                        if (longPressTimer.current) {
-                          clearTimeout(longPressTimer.current);
-                          longPressTimer.current = null;
-                        }
-                        if (didLongPress.current) e.preventDefault();
-                      }}
-                      onTouchMove={() => {
-                        if (longPressTimer.current) {
-                          clearTimeout(longPressTimer.current);
-                          longPressTimer.current = null;
-                        }
-                      }}
-                    >
-                      {day.count > 0 && (
-                        <span className="text-[9px] font-mono font-bold tabular-nums opacity-70 text-background">
-                          {day.count}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+      {/* Month header with arrows */}
+      <div className="flex items-center justify-between mb-3 px-1">
+        <button
+          onClick={goPrev}
+          className="p-1.5 hover:bg-muted active:bg-muted rounded transition-colors"
+          aria-label="Previous month"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <div className="text-sm font-mono font-bold uppercase tracking-wider text-foreground">
+          {monthData.label}
         </div>
-        ))}
-    </div>
+        <button
+          onClick={goNext}
+          disabled={isAtCurrentMonth}
+          className="p-1.5 hover:bg-muted active:bg-muted rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Next month"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
 
-    {/* Legend — outside scroll */}
-    <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-2">
-      <span className="font-bold">Less</span>
-      {[0, 1, 2, 3, 4, 5].map((level) => (
-        <div key={level} className="heatmap-cell heatmap-legend" data-level={level} style={{ width: 14, height: 14, borderRadius: 3 }} />
-      ))}
-      <span className="font-bold">More</span>
-    </div>
-    <div className="text-center text-[10px] font-mono text-muted-foreground opacity-50 mt-1">
-      ← swipe for more months →
-    </div>
-  </>
+      {/* DOW headers — full width grid */}
+      <div className="grid grid-cols-7 mb-1" style={{ gap: CELL_GAP }}>
+        {DOW_LABELS.map((label, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-center text-[10px] font-mono text-muted-foreground h-5"
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+
+      {/* Weeks — full width grid */}
+      <div className="flex flex-col" style={{ gap: CELL_GAP }}>
+        {monthData.weeks.map((week, wi) => (
+          <div key={wi} className="grid grid-cols-7" style={{ gap: CELL_GAP }}>
+            {week.map((day, di) => {
+              if (day.count === -1) {
+                return (
+                  <div
+                    key={di}
+                    className="heatmap-cell aspect-square"
+                    data-level="0"
+                    style={{ borderRadius: 4, opacity: 0.3 }}
+                  />
+                );
+              }
+              const level = getLevel(day.count, metric);
+              const isSelected = selectedDate === day.date;
+              const isReset = resetDate === day.date;
+              const isToday = day.date === todayKey;
+              return (
+                <div
+                  key={di}
+                  className={`heatmap-cell relative flex items-center justify-center aspect-square${isSelected ? " ring-2 ring-foreground" : ""}${isReset ? " just-reset" : ""}${isToday ? " ring-2 ring-foreground" : ""}`}
+                  data-level={level}
+                  style={{ borderRadius: 4, cursor: "pointer" }}
+                  onClick={() => {
+                    if (!didLongPress.current) onDayTap(day);
+                  }}
+                  onTouchStart={() => {
+                    didLongPress.current = false;
+                    longPressTimer.current = setTimeout(() => {
+                      didLongPress.current = true;
+                      longPressTimer.current = null;
+                      onDayLongPress(day);
+                    }, 400);
+                  }}
+                  onTouchEnd={(e) => {
+                    if (longPressTimer.current) {
+                      clearTimeout(longPressTimer.current);
+                      longPressTimer.current = null;
+                    }
+                    if (didLongPress.current) e.preventDefault();
+                  }}
+                  onTouchMove={() => {
+                    if (longPressTimer.current) {
+                      clearTimeout(longPressTimer.current);
+                      longPressTimer.current = null;
+                    }
+                  }}
+                >
+                  {day.count > 0 && (
+                    <span className="text-[10px] font-mono font-bold tabular-nums opacity-70 text-background">
+                      {day.count}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-3">
+        <span className="font-bold">Less</span>
+        {[0, 1, 2, 3, 4, 5].map((level) => (
+          <div
+            key={level}
+            className="heatmap-cell heatmap-legend"
+            data-level={level}
+            style={{ width: 14, height: 14, borderRadius: 3 }}
+          />
+        ))}
+        <span className="font-bold">More</span>
+      </div>
+    </>
   );
 }
