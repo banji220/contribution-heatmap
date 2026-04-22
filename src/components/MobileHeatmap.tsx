@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState, useLayoutEffect, useEffect } from "react";
 
 interface DayStats {
   doors: number;
@@ -20,9 +20,10 @@ const METRIC_THRESHOLDS: Record<MetricKey, [number, number, number, number]> = {
 };
 
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const DAY_ABBR = ["", "Mon", "", "Wed", "", "Fri", ""];
-const CELL = 10;
+const DAY_ABBR = ["", "M", "", "W", "", "F", ""];
 const GAP = 2;
+const NUM_WEEKS = 13;
+const DAY_LABEL_WIDTH = 14;
 
 function getLevel(count: number, metric: MetricKey): number {
   if (count === 0) return 0;
@@ -49,22 +50,40 @@ interface MobileHeatmapProps {
 }
 
 export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, selectedDate, resetDate }: MobileHeatmapProps) {
-  // Build last ~13 weeks (91 days) ending today, aligned so Sunday is the top row.
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setContainerWidth(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Cell size dynamically calculated to fill width with no scroll
+  const cellSize = useMemo(() => {
+    if (containerWidth === 0) return 12;
+    const available = containerWidth - DAY_LABEL_WIDTH - NUM_WEEKS * GAP + GAP;
+    const size = Math.floor(available / NUM_WEEKS);
+    return Math.max(8, Math.min(size, 20));
+  }, [containerWidth]);
+
   const { weeks, monthMarkers } = useMemo(() => {
     const empty: DayStats = { doors: 0, conversations: 0, leads: 0, appointments: 0, wins: 0 };
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const numWeeks = 13;
-    // Find the Sunday of the week starting numWeeks-1 weeks ago
     const start = new Date(today);
-    start.setDate(today.getDate() - today.getDay() - (numWeeks - 1) * 7);
+    start.setDate(today.getDate() - today.getDay() - (NUM_WEEKS - 1) * 7);
 
     const weeks: DayEntry[][] = [];
     const monthMarkers: { col: number; label: string }[] = [];
     let lastMonth = -1;
 
-    for (let w = 0; w < numWeeks; w++) {
+    for (let w = 0; w < NUM_WEEKS; w++) {
       const week: DayEntry[] = [];
       for (let dow = 0; dow < 7; dow++) {
         const d = new Date(start);
@@ -79,7 +98,6 @@ export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, 
           stats,
         });
       }
-      // Month label = first day of week's month, if it changed
       const firstReal = week.find((d) => d.date) ?? week[0];
       if (firstReal.date) {
         const m = new Date(firstReal.date).getMonth();
@@ -97,108 +115,106 @@ export default function MobileHeatmap({ data, metric, onDayTap, onDayLongPress, 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
 
-  const numWeeks = weeks.length;
-  const dayLabelWidth = 26;
-  const colWidth = CELL + GAP;
-  const gridWidth = numWeeks * CELL + (numWeeks - 1) * GAP;
+  const colWidth = cellSize + GAP;
+  const gridWidth = NUM_WEEKS * cellSize + (NUM_WEEKS - 1) * GAP;
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col items-center">
-        <div style={{ width: dayLabelWidth + gridWidth }}>
-          {/* Month labels row */}
-          <div className="relative" style={{ height: 14, marginLeft: dayLabelWidth, width: gridWidth }}>
-            {monthMarkers.map((m, i) => (
-              <span
-                key={i}
-                className="absolute top-0 text-[10px] font-mono text-muted-foreground leading-none"
-                style={{ left: m.col * colWidth }}
-              >
-                {m.label}
-              </span>
-            ))}
-          </div>
+    <div ref={containerRef} className="w-full">
+      {/* Month labels */}
+      <div className="relative" style={{ height: 12, marginLeft: DAY_LABEL_WIDTH, width: gridWidth }}>
+        {monthMarkers.map((m, i) => {
+          const tooClose = i > 0 && (m.col - monthMarkers[i - 1].col) < 3;
+          if (tooClose) return null;
+          return (
+            <span
+              key={i}
+              className="absolute top-0 text-[9px] font-mono text-muted-foreground leading-none"
+              style={{ left: m.col * colWidth }}
+            >
+              {m.label}
+            </span>
+          );
+        })}
+      </div>
 
-          <div className="flex">
-            {/* Day labels (Mon/Wed/Fri) */}
-            <div className="flex flex-col shrink-0" style={{ width: dayLabelWidth, gap: GAP }}>
-              {DAY_ABBR.map((label, i) => (
-                <div key={i} style={{ height: CELL }} className="flex items-center">
-                  <span className="text-[9px] font-mono text-muted-foreground leading-none">{label}</span>
-                </div>
-              ))}
+      <div className="flex">
+        {/* Day labels */}
+        <div className="flex flex-col shrink-0" style={{ width: DAY_LABEL_WIDTH, gap: GAP }}>
+          {DAY_ABBR.map((label, i) => (
+            <div key={i} style={{ height: cellSize }} className="flex items-center">
+              <span className="text-[8px] font-mono text-muted-foreground leading-none">{label}</span>
             </div>
-
-            {/* Weeks */}
-            <div className="flex" style={{ gap: GAP }}>
-              {weeks.map((week, wi) => (
-                <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
-                  {week.map((day, di) => {
-                    if (day.count === -1) {
-                      return (
-                        <div
-                          key={di}
-                          className="heatmap-cell"
-                          data-level="0"
-                          style={{ width: CELL, height: CELL, borderRadius: 2, opacity: 0.3 }}
-                        />
-                      );
-                    }
-                    const level = getLevel(day.count, metric);
-                    const isSelected = selectedDate === day.date;
-                    const isReset = resetDate === day.date;
-                    return (
-                      <div
-                        key={di}
-                        className={`heatmap-cell${isSelected ? " ring-1 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
-                        data-level={level}
-                        style={{ width: CELL, height: CELL, borderRadius: 2, cursor: "pointer" }}
-                        onClick={() => {
-                          if (!didLongPress.current) onDayTap(day);
-                        }}
-                        onTouchStart={() => {
-                          didLongPress.current = false;
-                          longPressTimer.current = setTimeout(() => {
-                            didLongPress.current = true;
-                            longPressTimer.current = null;
-                            onDayLongPress(day);
-                          }, 400);
-                        }}
-                        onTouchEnd={(e) => {
-                          if (longPressTimer.current) {
-                            clearTimeout(longPressTimer.current);
-                            longPressTimer.current = null;
-                          }
-                          if (didLongPress.current) e.preventDefault();
-                        }}
-                        onTouchMove={() => {
-                          if (longPressTimer.current) {
-                            clearTimeout(longPressTimer.current);
-                            longPressTimer.current = null;
-                          }
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-3">
-          <span className="font-bold">Less</span>
-          {[0, 1, 2, 3, 4, 5].map((level) => (
-            <div
-              key={level}
-              className="heatmap-cell heatmap-legend"
-              data-level={level}
-              style={{ width: 12, height: 12, borderRadius: 2 }}
-            />
           ))}
-          <span className="font-bold">More</span>
         </div>
+
+        {/* Weeks */}
+        <div className="flex" style={{ gap: GAP }}>
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex flex-col" style={{ gap: GAP }}>
+              {week.map((day, di) => {
+                if (day.count === -1) {
+                  return (
+                    <div
+                      key={di}
+                      className="heatmap-cell"
+                      data-level="0"
+                      style={{ width: cellSize, height: cellSize, borderRadius: 2, opacity: 0.3 }}
+                    />
+                  );
+                }
+                const level = getLevel(day.count, metric);
+                const isSelected = selectedDate === day.date;
+                const isReset = resetDate === day.date;
+                return (
+                  <div
+                    key={di}
+                    className={`heatmap-cell${isSelected ? " ring-1 ring-foreground" : ""}${isReset ? " just-reset" : ""}`}
+                    data-level={level}
+                    style={{ width: cellSize, height: cellSize, borderRadius: 2, cursor: "pointer" }}
+                    onClick={() => {
+                      if (!didLongPress.current) onDayTap(day);
+                    }}
+                    onTouchStart={() => {
+                      didLongPress.current = false;
+                      longPressTimer.current = setTimeout(() => {
+                        didLongPress.current = true;
+                        longPressTimer.current = null;
+                        onDayLongPress(day);
+                      }, 400);
+                    }}
+                    onTouchEnd={(e) => {
+                      if (longPressTimer.current) {
+                        clearTimeout(longPressTimer.current);
+                        longPressTimer.current = null;
+                      }
+                      if (didLongPress.current) e.preventDefault();
+                    }}
+                    onTouchMove={() => {
+                      if (longPressTimer.current) {
+                        clearTimeout(longPressTimer.current);
+                        longPressTimer.current = null;
+                      }
+                    }}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono text-muted-foreground pt-3">
+        <span className="font-bold">Less</span>
+        {[0, 1, 2, 3, 4, 5].map((level) => (
+          <div
+            key={level}
+            className="heatmap-cell heatmap-legend"
+            data-level={level}
+            style={{ width: 12, height: 12, borderRadius: 2 }}
+          />
+        ))}
+        <span className="font-bold">More</span>
       </div>
     </div>
   );
